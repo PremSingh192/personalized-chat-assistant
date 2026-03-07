@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Widget Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .info {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            color: #004085;
+        }
+        
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Simple Widget Test</h1>
+        
+        <div id="status" class="info">
+            <h3>Status</h3>
+            <p id="statusMessage">Loading widget script...</p>
+        </div>
+        
+        <div class="info">
+            <h3>📋 Test Steps</h3>
+            <ol>
+                <li>Load widget.js script from server</li>
+                <li>Verify ChatWidget is defined</li>
+                <li>Initialize widget with test API key</li>
+                <li>Test widget functionality</li>
+            </ol>
+        </div>
+        
+        <div class="info">
+            <h3>🔧 Integration Code</h3>
+            <div class="code-block">
+&lt;script src="http://localhost:3000/widget.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+    ChatWidget.init({
+        apiKey: '16e81ebe-219f-49b6-906e-c5f6b4617adc',
+        primaryColor: '#4facfe',
+        secondaryColor: '#00f2fe',
+        textColor: '#333333',
+        bgColor: '#ffffff',
+        headerTitle: 'Customer Support',
+        headerSubtitle: 'We are here to help!',
+        position: 'bottom-right',
+        size: 'medium'
+    });
+&lt;/script&gt;
+            </div>
+        </div>
+        
+        <div class="info">
+            <h3>🎮 Test Controls</h3>
+            <button class="btn" onclick="testWidgetLoad()">Test Widget Load</button>
+            <button class="btn" onclick="testWidgetInit()">Test Widget Init</button>
+            <button class="btn btn-danger" onclick="destroyWidget()">Destroy Widget</button>
+            <button class="btn" onclick="checkChatWidget()">Check ChatWidget Object</button>
+        </div>
+        
+        <div id="testResults" class="info" style="display: none;">
+            <h3>📊 Test Results</h3>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let widgetInstance = null;
+        
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            statusDiv.className = `status ${type}`;
+            statusMessage.textContent = message;
+            
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function showResults() {
+            document.getElementById('testResults').style.display = 'block';
+        }
+        
+        function addResult(test, passed, details = '') {
+            const resultsContent = document.getElementById('resultsContent');
+            const resultDiv = document.createElement('div');
+            resultDiv.style.cssText = `
+                padding: 10px;
+                margin: 5px 0;
+                border-radius: 4px;
+                background: ${passed ? '#d4edda' : '#f8d7da'};
+                border-left: 4px solid ${passed ? '#28a745' : '#dc3545'};
+                color: ${passed ? '#155724' : '#721c24'};
+            `;
+            resultDiv.innerHTML = `
+                <strong>${test}:</strong> ${passed ? '✅ PASSED' : '❌ FAILED'}
+                ${details ? `<br><small>${details}</small>` : ''}
+            `;
+            resultsContent.appendChild(resultDiv);
+        }
+        
+        function testWidgetLoad() {
+            updateStatus('Testing widget script loading...', 'info');
+            
+            // Test if ChatWidget is defined
+            setTimeout(() => {
+                if (typeof ChatWidget !== 'undefined') {
+                    addResult('Widget Script Load', true, 'ChatWidget object is defined');
+                    updateStatus('✅ Widget script loaded successfully', 'success');
+                    showResults();
+                } else {
+                    addResult('Widget Script Load', false, 'ChatWidget object is not defined');
+                    updateStatus('❌ Widget script failed to load', 'error');
+                    showResults();
+                }
+            }, 1000);
+        }
+        
+        function testWidgetInit() {
+            updateStatus('Testing widget initialization...', 'info');
+            
+            if (typeof ChatWidget === 'undefined') {
+                addResult('Widget Initialization', false, 'ChatWidget is not defined');
+                updateStatus('❌ Cannot initialize - ChatWidget not defined', 'error');
+                showResults();
+                return;
+            }
+            
+            try {
+                // Destroy existing widget if any
+                if (widgetInstance) {
+                    widgetInstance.destroy();
+                }
+                
+                // Initialize new widget
+                widgetInstance = ChatWidget.init({
+                    apiKey: '16e81ebe-219f-49b6-906e-c5f6b4617adc',
+                    primaryColor: '#28a745',
+                    secondaryColor: '#20c997',
+                    textColor: '#333333',
+                    bgColor: '#ffffff',
+                    headerTitle: 'Test Support',
+                    headerSubtitle: 'Widget test in progress!',
+                    position: 'bottom-right',
+                    size: 'medium'
+                });
+                
+                if (widgetInstance) {
+                    addResult('Widget Initialization', true, 'Widget created successfully');
+                    updateStatus('✅ Widget initialized successfully', 'success');
+                    showResults();
+                } else {
+                    addResult('Widget Initialization', false, 'Widget init returned null');
+                    updateStatus('❌ Widget initialization failed', 'error');
+                    showResults();
+                }
+            } catch (error) {
+                addResult('Widget Initialization', false, `Error: ${error.message}`);
+                updateStatus(`❌ Widget initialization failed: ${error.message}`, 'error');
+                showResults();
+            }
+        }
+        
+        function destroyWidget() {
+            updateStatus('Destroying widget...', 'info');
+            
+            if (widgetInstance) {
+                try {
+                    widgetInstance.destroy();
+                    widgetInstance = null;
+                    addResult('Widget Destruction', true, 'Widget destroyed successfully');
+                    updateStatus('✅ Widget destroyed successfully', 'success');
+                    showResults();
+                } catch (error) {
+                    addResult('Widget Destruction', false, `Error: ${error.message}`);
+                    updateStatus(`❌ Widget destruction failed: ${error.message}`, 'error');
+                    showResults();
+                }
+            } else {
+                addResult('Widget Destruction', false, 'No widget instance to destroy');
+                updateStatus('⚠️ No widget instance to destroy', 'error');
+                showResults();
+            }
+        }
+        
+        function checkChatWidget() {
+            updateStatus('Checking ChatWidget object...', 'info');
+            
+            const checks = [
+                { name: 'ChatWidget defined', test: () => typeof ChatWidget !== 'undefined' },
+                { name: 'ChatWidget.init method', test: () => ChatWidget && typeof ChatWidget.init === 'function' },
+                { name: 'ChatWidget constructor', test: () => ChatWidget && typeof ChatWidget === 'function' }
+            ];
+            
+            let allPassed = true;
+            checks.forEach(check => {
+                const passed = check.test();
+                addResult(check.name, passed);
+                if (!passed) allPassed = false;
+            });
+            
+            if (allPassed) {
+                updateStatus('✅ All ChatWidget checks passed', 'success');
+            } else {
+                updateStatus('❌ Some ChatWidget checks failed', 'error');
+            }
+            showResults();
+        }
+        
+        // Load widget script
+        function loadWidgetScript() {
+            updateStatus('Loading widget script...', 'info');
+            
+            const script = document.createElement('script');
+            script.src = 'http://localhost:3000/widget.js';
+            script.onload = function() {
+                updateStatus('✅ Widget script loaded successfully', 'success');
+                addResult('Script Load Event', true, 'Script onload event fired');
+                showResults();
+            };
+            script.onerror = function() {
+                updateStatus('❌ Failed to load widget script', 'error');
+                addResult('Script Load Event', false, 'Script onerror event fired');
+                showResults();
+            };
+            script.onabort = function() {
+                updateStatus('⚠️ Widget script loading aborted', 'error');
+                addResult('Script Load Event', false, 'Script onabort event fired');
+                showResults();
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus('🚀 Page loaded - loading widget script...', 'info');
+            loadWidgetScript();
+        });
+    </script>
+</body>
+</html>
