@@ -71,23 +71,49 @@ export const chatService = {
     });
   },
 
-  async processVisitorMessage(businessId: number, visitorId: number, message: string): Promise<string> {
+  async processVisitorMessage(
+  businessId: number, 
+  visitorId: number, 
+  message: string,
+  onStreamChunk?: (chunk: string) => void
+): Promise<string> {
     try {
       const conversation = await this.findOrCreateConversation(businessId, visitorId);
       
       console.log(`Saving visitor message: "${message}" for conversation ${conversation.id}`);
       await this.saveMessage(conversation.id, 'visitor', message);
       
-      console.log('Generating AI response...');
-      const aiResponse = await aiService.generateResponse(businessId, message);
+      console.log('Generating AI response with streaming...');
       
-      console.log(`AI response generated: "${aiResponse}"`);
-      console.log('Saving AI response to database...');
-      
-      await this.saveMessage(conversation.id, 'bot', aiResponse);
-      console.log(`AI response saved with ID: should appear in next log`);
-      
-      return aiResponse;
+      // Use streaming if callback provided, otherwise use regular method
+      if (onStreamChunk) {
+        let fullResponse = '';
+        const stream = aiService.generateResponseStream(businessId, message);
+        
+        for await (const chunk of stream) {
+          fullResponse += chunk;
+          onStreamChunk(chunk); // Send chunk to client
+        }
+        
+        console.log(`Streaming completed. Full response: "${fullResponse}"`);
+        console.log('Saving complete AI response to database...');
+        
+        await this.saveMessage(conversation.id, 'bot', fullResponse);
+        console.log('AI response saved to database');
+        
+        return fullResponse;
+      } else {
+        // Fallback to non-streaming
+        const aiResponse = await aiService.generateResponse(businessId, message);
+        
+        console.log(`AI response generated: "${aiResponse}"`);
+        console.log('Saving AI response to database...');
+        
+        await this.saveMessage(conversation.id, 'bot', aiResponse);
+        console.log(`AI response saved with ID: should appear in next log`);
+        
+        return aiResponse;
+      }
     } catch (error) {
       console.error('Error processing visitor message:', error);
       throw new Error('Failed to process visitor message');

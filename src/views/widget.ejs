@@ -195,6 +195,24 @@
             padding: 2rem;
             font-style: italic;
         }
+        
+        .streaming-cursor {
+            display: inline-block;
+            animation: blink 1s infinite;
+            font-weight: bold;
+            color: #4facfe;
+        }
+        
+        .message.streaming .message-content {
+            opacity: 0.9;
+            border-radius: 18px;
+            position: relative;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -253,10 +271,75 @@
         let chatHistoryLoaded = false; // Prevent duplicate history loading
         let isSendingMessage = false; // Prevent duplicate message sending
         let thinkingTimeout; // Timeout for thinking indicator
+        let currentStreamingMessage = null; // Track current streaming message
+        let streamingMessageContent = ''; // Accumulate streaming content
+        let conversationId = null; // Track conversation ID
         
         if (!deviceId) {
             deviceId = 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
             localStorage.setItem('chat_device_id', deviceId);
+        }
+        
+        // Chat History API Functions
+        async function loadChatHistory(page = 1, limit = 50) {
+            try {
+                console.log(`Loading chat history page ${page} with limit ${limit}`);
+                
+                const response = await fetch(`${window.location.origin}/api/chat/history?api_key=${API_KEY}&device_id=${deviceId}&page=${page}&limit=${limit}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    console.log(`Loaded ${data.data.messages.length} messages`);
+                    return data.data;
+                } else {
+                    console.error('Failed to load chat history:', data.message);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+                return null;
+            }
+        }
+        
+        async function loadConversationSummary() {
+            try {
+                console.log('Loading conversation summary');
+                
+                const response = await fetch(`${window.location.origin}/api/chat/summary?api_key=${API_KEY}&device_id=${deviceId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    console.log('Conversation summary loaded:', data.data);
+                    return data.data;
+                } else {
+                    console.error('Failed to load conversation summary:', data.message);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Error loading conversation summary:', error);
+                return null;
+            }
+        }
+        
+        function displayChatHistory(messages) {
+            const messagesContainer = document.getElementById('chatMessages');
+            if (!messagesContainer) return;
+            
+            // Clear existing messages except welcome message
+            const welcomeMessage = messagesContainer.querySelector('.welcome-message');
+            messagesContainer.innerHTML = '';
+            
+            if (welcomeMessage && messages.length === 0) {
+                messagesContainer.appendChild(welcomeMessage);
+            }
+            
+            // Add messages in chronological order
+            messages.forEach(message => {
+                addMessage(message.sender_type, message.message, new Date(message.created_at));
+            });
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
         
         function connectSocket() {
@@ -270,8 +353,23 @@
                 query: { api_key: API_KEY }
             });
             
-            socket.on('connect', () => {
+            socket.on('connect', async () => {
                 console.log('Connected to chat server');
+                
+                // Load chat history via REST API instead of socket
+                const chatHistory = await loadChatHistory();
+                if (chatHistory) {
+                    displayChatHistory(chatHistory.messages);
+                    chatHistoryLoaded = true;
+                    
+                    // Store conversation ID if available
+                    if (chatHistory.pagination.total > 0) {
+                        const summary = await loadConversationSummary();
+                        if (summary && summary.conversationId) {
+                            conversationId = summary.conversationId;
+                        }
+                    }
+                }
                 
                 socket.emit('join_chat', {
                     deviceId: deviceId,
@@ -279,23 +377,8 @@
                 });
             });
             
-            socket.on('chat_history', (messages) => {
-                // Prevent duplicate message loading
-                if (chatHistoryLoaded) {
-                    console.log('Chat history already loaded, skipping duplicates');
-                    return;
-                }
-                
-                // Clear existing messages before loading new ones
-                const messagesContainer = document.getElementById('chatMessages');
-                messagesContainer.innerHTML = '';
-                
-                messages.forEach(message => {
-                    addMessage(message.sender_type, message.message, new Date(message.created_at));
-                });
-                
-                chatHistoryLoaded = true; // Mark as loaded
-            });
+            // Remove the old chat_history socket event handler
+            // We're now using REST API for chat history
             
             socket.on('message', (data) => {
                 console.log('Message received:', data);
@@ -310,6 +393,57 @@
                 }
                 
                 addMessage(data.sender_type, data.message, new Date(data.timestamp));
+            });
+            
+            // Handle streaming AI chunks
+            socket.on('ai_chunk', (data) => {
+                console.log('AI chunk received:', data);
+                
+                // Hide thinking indicator on first chunk
+                hideThinkingIndicator();
+                
+                if (!currentStreamingMessage) {
+                    // Create new streaming message
+                    currentStreamingMessage = addStreamingMessage('bot', new Date(data.timestamp));
+                    streamingMessageContent = '';
+                }
+                
+                // Accumulate content
+                streamingMessageContent += data.chunk;
+                
+                // Update the streaming message content
+                updateStreamingMessage(currentStreamingMessage, streamingMessageContent);
+            });
+            
+            // Handle streaming completion
+            socket.on('ai_complete', (data) => {
+                console.log('AI streaming completed:', data);
+                
+                if (currentStreamingMessage) {
+                    // Convert streaming message to regular message
+                    finalizeStreamingMessage(currentStreamingMessage, data.message, new Date(data.timestamp));
+                    currentStreamingMessage = null;
+                    streamingMessageContent = '';
+                } else {
+                    // Fallback for non-streaming responses
+                    hideThinkingIndicator();
+                    addMessage('bot', data.message, new Date(data.timestamp));
+                }
+            });
+            
+            // Handle streaming errors
+            socket.on('ai_error', (data) => {
+                console.log('AI streaming error:', data);
+                hideThinkingIndicator();
+                
+                if (currentStreamingMessage) {
+                    // Remove incomplete streaming message
+                    currentStreamingMessage.remove();
+                    currentStreamingMessage = null;
+                    streamingMessageContent = '';
+                }
+                
+                showError('AI response failed. Please try again.');
             });
             
             socket.on('typing', (data) => {
@@ -348,6 +482,63 @@
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             console.log('Message added to UI');
+        }
+        
+        function addStreamingMessage(sender, timestamp) {
+            console.log('addStreamingMessage called with:', { sender, timestamp });
+            const messagesContainer = document.getElementById('chatMessages');
+            if (!messagesContainer) {
+                console.error('chatMessages container not found!');
+                return null;
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender} streaming`;
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <span class="streaming-cursor">|</span>
+                </div>
+                <div class="message-time">${timestamp.toLocaleTimeString()}</div>
+            `;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            console.log('Streaming message added to UI');
+            return messageDiv;
+        }
+        
+        function updateStreamingMessage(messageElement, content) {
+            if (!messageElement) return;
+            
+            const contentElement = messageElement.querySelector('.message-content');
+            if (contentElement) {
+                contentElement.innerHTML = `${content}<span class="streaming-cursor">|</span>`;
+            }
+            
+            // Scroll to bottom
+            const messagesContainer = document.getElementById('chatMessages');
+            if (messagesContainer) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+        
+        function finalizeStreamingMessage(messageElement, finalContent, timestamp) {
+            if (!messageElement) return;
+            
+            // Remove streaming class and cursor
+            messageElement.classList.remove('streaming');
+            const contentElement = messageElement.querySelector('.message-content');
+            if (contentElement) {
+                contentElement.innerHTML = finalContent;
+            }
+            
+            // Update time
+            const timeElement = messageElement.querySelector('.message-time');
+            if (timeElement) {
+                timeElement.textContent = timestamp.toLocaleTimeString();
+            }
+            
+            console.log('Streaming message finalized');
         }
         
         function sendMessage() {

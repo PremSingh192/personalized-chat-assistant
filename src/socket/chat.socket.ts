@@ -22,7 +22,12 @@ export const chatSocket = (io: Server) => {
         return next(new Error('API key required'));
       }
 
-      const business = await businessRepository.findOne({ where: { api_key: apiKey } });
+      const business = await businessRepository.findOne({ 
+        where: { 
+          api_key: apiKey,
+          // Ensure API key is not null
+        } 
+      });
       
       if (!business) {
         return next(new Error('Invalid API key'));
@@ -65,11 +70,10 @@ export const chatSocket = (io: Server) => {
         
         socket.join(`conversation_${conversation.id}`);
         
-        const history = await chatService.getConversationHistory(conversation.id);
-        
-        socket.emit('chat_history', history);
-        
         console.log(`Visitor ${visitor.id} joined conversation ${conversation.id}`);
+        
+        // Don't emit chat history through socket anymore
+        // Frontend will fetch it via REST API
       } catch (error) {
         console.error('Error joining chat:', error);
         socket.emit('error', { message: 'Failed to join chat' });
@@ -95,48 +99,93 @@ export const chatSocket = (io: Server) => {
           timestamp: new Date()
         });
 
-        console.log('Generating AI response...');
-        const aiResponse = await chatService.processVisitorMessage(
-          socket.business!.id,
-          socket.visitorId,
-          message
-        );
-
-        console.log(`AI response generated: "${aiResponse}"`);
-
-        // Send AI response to visitor using Redis-stored socket ID
-        if (redisClient && socket.visitorId) {
-          const redisKey = `visitor:${socket.business!.id}:${socket.visitorId}:socket`;
-          const visitorSocketId = await redisClient.get(redisKey);
+        console.log('Starting streaming AI response...');
+        
+        // Start streaming response
+        const streamCallback = (chunk: string) => {
+          console.log(`Emitting chunk: "${chunk}"`);
           
-          if (visitorSocketId) {
-            console.log(`Found visitor socket ID ${visitorSocketId} in Redis`);
-            io.to(visitorSocketId).emit('message', {
-              sender_type: 'bot',
-              message: aiResponse,
-              timestamp: new Date()
+          // Send chunk to visitor
+          if (redisClient && socket.visitorId) {
+            const redisKey = `visitor:${socket.business!.id}:${socket.visitorId}:socket`;
+            
+            // Emit to visitor socket (async Redis operation)
+            redisClient.get(redisKey).then((socketId: string | null) => {
+              if (socketId) {
+                io.to(socketId).emit('ai_chunk', {
+                  chunk: chunk,
+                  timestamp: new Date()
+                });
+              } else {
+                socket.emit('ai_chunk', {
+                  chunk: chunk,
+                  timestamp: new Date()
+                });
+              }
+            }).catch((error: unknown) => {
+              console.error('Redis get error:', error);
+              socket.emit('ai_chunk', {
+                chunk: chunk,
+                timestamp: new Date()
+              });
             });
-            console.log(`AI response emitted to visitor socket ${visitorSocketId}`);
           } else {
-            console.log(`No socket ID found in Redis for visitor ${socket.visitorId}, falling back to current socket`);
-            socket.emit('message', {
-              sender_type: 'bot',
-              message: aiResponse,
+            socket.emit('ai_chunk', {
+              chunk: chunk,
               timestamp: new Date()
             });
           }
+        };
+
+        // Process message with streaming
+        const fullResponse = await chatService.processVisitorMessage(
+          socket.business!.id,
+          socket.visitorId,
+          message,
+          streamCallback
+        );
+
+        console.log(`Streaming completed. Full response: "${fullResponse}"`);
+
+        // Send completion signal
+        if (redisClient && socket.visitorId) {
+          const redisKey = `visitor:${socket.business!.id}:${socket.visitorId}:socket`;
+          
+          redisClient.get(redisKey).then((socketId: string | null) => {
+            if (socketId) {
+              io.to(socketId).emit('ai_complete', {
+                message: fullResponse,
+                timestamp: new Date()
+              });
+            } else {
+              socket.emit('ai_complete', {
+                message: fullResponse,
+                timestamp: new Date()
+              });
+            }
+          }).catch((error: unknown) => {
+            console.error('Redis get error in completion:', error);
+            socket.emit('ai_complete', {
+              message: fullResponse,
+              timestamp: new Date()
+            });
+          });
         } else {
-          // Fallback to current socket if Redis not available
-          console.log(`Redis not available, emitting to current socket ${socket.id}`);
-          socket.emit('message', {
-            sender_type: 'bot',
-            message: aiResponse,
+          socket.emit('ai_complete', {
+            message: fullResponse,
             timestamp: new Date()
           });
         }
+        
       } catch (error) {
         console.error('Error processing message:', error);
         socket.emit('error', { message: 'Failed to process message' });
+        
+        // Send error signal for streaming
+        socket.emit('ai_error', {
+          error: 'Failed to process message',
+          timestamp: new Date()
+        });
       }
     });
 

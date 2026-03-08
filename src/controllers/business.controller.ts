@@ -298,6 +298,112 @@ export const getApiKey = async (req: Request, res: Response) => {
   }
 };
 
+export const regenerateApiKey = async (req: Request, res: Response) => {
+  try {
+    const businessId = (req as any).business?.id;
+    const business = await businessRepository.findOne({ where: { id: businessId } });
+    
+    if (!business) {
+      return res.status(404).json({ error: 'Business not found' });
+    }
+    
+    // Generate new API key
+    const newApiKey = uuidv4();
+    
+    // Update business with new API key
+    await businessRepository.update(businessId, { api_key: newApiKey });
+    
+    console.log(`API key regenerated for business ${business.name} (${business.id})`);
+    
+    res.json({ 
+      success: true,
+      message: 'API key regenerated successfully',
+      api_key: newApiKey 
+    });
+  } catch (error) {
+    console.error('Error regenerating API key:', error);
+    res.status(500).json({ error: 'Error regenerating API key' });
+  }
+};
+
+export const updateApiKey = async (req: Request, res: Response) => {
+  try {
+    const businessId = (req as any).business?.id;
+    const { new_api_key } = req.body;
+    
+    // Validate new API key
+    if (!new_api_key || typeof new_api_key !== 'string' || new_api_key.length < 8) {
+      return res.status(400).json({ 
+        error: 'Invalid API key. Must be at least 8 characters long.' 
+      });
+    }
+    
+    // Check if API key already exists (excluding current business)
+    const existingBusiness = await businessRepository.findOne({ 
+      where: { 
+        api_key: new_api_key
+      } 
+    });
+      
+    if (existingBusiness && existingBusiness.id !== businessId) {
+      return res.status(400).json({ 
+        error: 'This API key is already in use by another business.' 
+      });
+    }
+    
+    const business = await businessRepository.findOne({ where: { id: businessId } });
+    
+    if (!business) {
+      return res.status(404).json({ error: 'Business not found' });
+    }
+    
+    // Store old API key for logging
+    const oldApiKey = business.api_key;
+    
+    // Update business with new API key
+    await businessRepository.update(businessId, { api_key: new_api_key });
+    
+    console.log(`API key updated for business ${business.name} (${business.id}): ${oldApiKey} -> ${new_api_key}`);
+    
+    res.json({ 
+      success: true,
+      message: 'API key updated successfully',
+      api_key: new_api_key 
+    });
+  } catch (error) {
+    console.error('Error updating API key:', error);
+    res.status(500).json({ error: 'Error updating API key' });
+  }
+};
+
+export const deleteApiKey = async (req: Request, res: Response) => {
+  try {
+    const businessId = (req as any).business?.id;
+    const business = await businessRepository.findOne({ where: { id: businessId } });
+    
+    if (!business) {
+      return res.status(404).json({ error: 'Business not found' });
+    }
+    
+    // Store old API key for logging
+    const oldApiKey = business.api_key;
+    
+    // Set API key to null (effectively disabling it)
+    await businessRepository.update(businessId, { api_key: null });
+    
+    console.log(`API key deleted for business ${business.name} (${business.id}): ${oldApiKey}`);
+    
+    res.json({ 
+      success: true,
+      message: 'API key deleted successfully. Your widget is now disabled.',
+      api_key: null 
+    });
+  } catch (error) {
+    console.error('Error deleting API key:', error);
+    res.status(500).json({ error: 'Error deleting API key' });
+  }
+};
+
 export const getBusinessConversations = async (req: Request, res: Response) => {
   try {
     const businessId = (req as any).business?.id;

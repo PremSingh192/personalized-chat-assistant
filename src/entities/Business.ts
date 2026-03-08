@@ -11,8 +11,12 @@ export class Business {
   @Column()
   name: string;
 
-  @Column({ unique: true })
-  api_key: string;
+  @Column({ 
+  type: 'varchar',
+  unique: true, 
+  nullable: true 
+})
+api_key: string | null;
 
   @Column({ unique: true })
   email: string;

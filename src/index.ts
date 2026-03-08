@@ -18,6 +18,7 @@ import authRoutes from './routes/auth.routes';
 import chatRoutes from './routes/chat.routes';
 import knowledgeRoutes from './routes/knowledge.routes';
 import businessKnowledgeRoutes from './routes/business-knowledge.routes';
+import chatHistoryRoutes from './routes/chatHistory.routes';
 
 import { chatSocket } from './socket/chat.socket';
 
@@ -80,6 +81,7 @@ app.use('/business', businessRoutes);
 app.use('/business/knowledge', businessKnowledgeRoutes);
 app.use(authRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/chat', chatHistoryRoutes);
 app.use('/api/knowledge', knowledgeRoutes);
 
 // Widget JavaScript file route

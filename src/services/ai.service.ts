@@ -56,7 +56,7 @@ export const aiService = {
     }
   },
 
-  // Enhanced response generation with better context management and prompt engineering
+  // Enhanced response generation with streaming support
   async generateResponse(businessId: number, question: string): Promise<string> {
     try {
       console.log(`🤖 Generating AI response for business ${businessId}, question: "${question}"`);
@@ -69,14 +69,14 @@ export const aiService = {
       // Dynamic prompt engineering based on context quality
       const prompt = this.buildOptimizedPrompt(context, question);
 
-      console.log(`📤 Sending request to Ollama: ${config.ollama.url}`);
+      console.log(`📤 Sending streaming request to Ollama: ${config.ollama.url}`);
       console.log(`🧠 Using model: ${config.ollama.model}`);
       console.log(`📊 Context quality score: ${this.calculateContextQuality(relevantDocs)}`);
 
       const response = await axios.post(`${config.ollama.url}/api/generate`, {
         model: config.ollama.model,
         prompt: prompt,
-        stream: false,
+        stream: true, // Enable streaming
         options: {
           temperature: 0.3, // Lower temperature for more focused, consistent responses
           top_p: 0.8, // More focused sampling
@@ -86,18 +86,42 @@ export const aiService = {
         }
       }, {
         timeout: 60000, // 60 second timeout for generation
+        responseType: 'stream' // Important for streaming
       });
 
-      console.log(`✅ Ollama response status: ${response.status}`);
+      console.log(`✅ Ollama streaming response started: ${response.status}`);
 
-      const aiResponse = response.data.response?.trim();
+      let fullResponse = '';
+      const stream = response.data;
+      
+      // Process the stream
+      for await (const chunk of stream) {
+        const chunkText = chunk.toString();
+        const lines = chunkText.split('\n').filter((line: string) => line.trim());
+        
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line);
+            if (data.response) {
+              fullResponse += data.response;
+            }
+            if (data.done) {
+              console.log(`✅ Streaming completed. Full response: "${fullResponse}"`);
+              break;
+            }
+          } catch (e) {
+            // Skip invalid JSON lines
+            continue;
+          }
+        }
+      }
 
-      if (!aiResponse) {
+      if (!fullResponse) {
         throw new Error('Empty response from AI');
       }
 
       // Post-process response for quality
-      const processedResponse = this.postProcessResponse(aiResponse, question);
+      const processedResponse = this.postProcessResponse(fullResponse, question);
 
       return processedResponse;
     } catch (error: any) {
@@ -113,6 +137,62 @@ export const aiService = {
 
       // Fallback response with context awareness
       return this.generateFallbackResponse(question, []);
+    }
+  },
+
+  // New streaming method for real-time response delivery
+  async* generateResponseStream(businessId: number, question: string): AsyncGenerator<string, void, unknown> {
+    try {
+      console.log(`🤖 Starting streaming AI response for business ${businessId}, question: "${question}"`);
+
+      const relevantDocs = await this.retrieveRelevantDocuments(businessId, question);
+      const context = this.prepareOptimizedContext(relevantDocs, question);
+      const prompt = this.buildOptimizedPrompt(context, question);
+
+      console.log(`📤 Sending streaming request to Ollama: ${config.ollama.url}`);
+
+      const response = await axios.post(`${config.ollama.url}/api/generate`, {
+        model: config.ollama.model,
+        prompt: prompt,
+        stream: true,
+        options: {
+          temperature: 0.3,
+          top_p: 0.8,
+          max_tokens: 150,
+          repeat_penalty: 1.2,
+          stop: ['\n\n', 'Human:', 'User:'],
+        }
+      }, {
+        timeout: 60000,
+        responseType: 'stream'
+      });
+
+      let fullResponse = '';
+      const stream = response.data;
+      
+      for await (const chunk of stream) {
+        const chunkText = chunk.toString();
+        const lines = chunkText.split('\n').filter((line: string) => line.trim());
+        
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line);
+            if (data.response) {
+              fullResponse += data.response;
+              yield data.response; // Yield each chunk
+            }
+            if (data.done) {
+              console.log(`✅ Streaming completed. Full response: "${fullResponse}"`);
+              return; // End the generator
+            }
+          } catch (e) {
+            continue;
+          }
+        }
+      }
+    } catch (error: unknown) {
+      console.error('❌ Error in streaming AI response:', error);
+      yield this.generateFallbackResponse(question, []);
     }
   },
 

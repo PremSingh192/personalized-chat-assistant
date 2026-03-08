@@ -838,15 +838,48 @@
 
     <div id="apiKeyModal" class="modal">
         <div class="modal-content">
-            <h2>Your API Key</h2>
-            <p>Use this API key to integrate the chat widget on your website:</p>
-            <div style="background: #f1f1f1; padding: 1rem; border-radius: 5px; font-family: monospace; word-break: break-all; margin: 1rem 0;">
-                <span id="apiKeyDisplay">Loading...</span>
+            <h2>API Key Management</h2>
+            <p>Manage your API key for chat widget integration:</p>
+            
+            <div class="api-key-section">
+                <h3>Current API Key</h3>
+                <div class="api-key-display">
+                    <div class="api-key-value" id="apiKeyDisplay">Loading...</div>
+                    <button type="button" class="btn btn-copy" onclick="copyApiKey()">📋 Copy</button>
+                </div>
             </div>
-            <p style="font-size: 0.9rem; color: #666;">
-                Copy this key and add it to your website:<br>
-                <code>&lt;script src="<%= widgetConfig.domain %><%= widgetConfig.scriptPath %>" data-api-key="YOUR_API_KEY"&gt;&lt;/script&gt;</code>
-            </p>
+            
+            <div class="api-key-actions">
+                <div class="action-section">
+                    <h4>Regenerate API Key</h4>
+                    <p>Generate a new random API key. This will invalidate your current key.</p>
+                    <button type="button" class="btn btn-warning" onclick="regenerateApiKey()">🔄 Regenerate</button>
+                </div>
+                
+                <div class="action-section">
+                    <h4>Update API Key</h4>
+                    <p>Set a custom API key of your choice:</p>
+                    <div class="custom-key-input">
+                        <input type="text" id="customApiKey" placeholder="Enter new API key (min 8 characters)" minlength="8">
+                        <button type="button" class="btn btn-primary" onclick="updateApiKey()">✏️ Update</button>
+                    </div>
+                </div>
+                
+                <div class="action-section danger">
+                    <h4>Delete API Key</h4>
+                    <p>⚠️ This will disable your chat widget until you generate a new key.</p>
+                    <button type="button" class="btn btn-danger" onclick="deleteApiKey()">🗑️ Delete API Key</button>
+                </div>
+            </div>
+            
+            <div class="integration-info">
+                <h4>Integration Instructions</h4>
+                <p>Use this API key to integrate the chat widget on your website:</p>
+                <code class="integration-code">
+                    &lt;script src="<%= widgetConfig.domain %><%= widgetConfig.scriptPath %>" data-api-key="YOUR_API_KEY"&gt;&lt;/script&gt;
+                </code>
+            </div>
+            
             <div class="modal-buttons">
                 <button type="button" class="btn btn-secondary" onclick="hideApiKeyModal()">Close</button>
             </div>
@@ -959,6 +992,136 @@
             background: #6c757d;
             color: white;
         }
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        /* API Key Management Styles */
+        .api-key-section {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .api-key-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .api-key-value {
+            flex: 1;
+            background: #fff;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+        
+        .btn-copy {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        
+        .btn-copy:hover {
+            background: #218838;
+        }
+        
+        .api-key-actions {
+            margin: 1.5rem 0;
+        }
+        
+        .action-section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+        }
+        
+        .action-section.danger {
+            border-color: #f8d7da;
+            background: #f8d7da;
+        }
+        
+        .action-section h4 {
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        
+        .action-section p {
+            margin-bottom: 1rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .custom-key-input {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .custom-key-input input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .integration-info {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #e9ecef;
+            border-radius: 8px;
+        }
+        
+        .integration-code {
+            display: block;
+            background: #fff;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            word-break: break-all;
+            margin-top: 0.5rem;
+        }
     </style>
 
     <script>
@@ -983,9 +1146,126 @@
             try {
                 const response = await fetch('/business/api-key');
                 const data = await response.json();
-                document.getElementById('apiKeyDisplay').textContent = data.api_key;
+                document.getElementById('apiKeyDisplay').textContent = data.api_key || 'No API key set';
             } catch (error) {
                 document.getElementById('apiKeyDisplay').textContent = 'Error loading API key';
+            }
+        }
+
+        async function copyApiKey() {
+            const apiKeyElement = document.getElementById('apiKeyDisplay');
+            const apiKey = apiKeyElement.textContent;
+            
+            if (!apiKey || apiKey === 'Loading...' || apiKey === 'Error loading API key' || apiKey === 'No API key set') {
+                alert('No valid API key to copy');
+                return;
+            }
+            
+            try {
+                await navigator.clipboard.writeText(apiKey);
+                alert('API key copied to clipboard!');
+            } catch (error) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = apiKey;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('API key copied to clipboard!');
+            }
+        }
+
+        async function regenerateApiKey() {
+            if (!confirm('Are you sure you want to regenerate your API key? This will invalidate your current key and require you to update it on your website.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/business/api-key/regenerate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('apiKeyDisplay').textContent = data.api_key;
+                    alert('API key regenerated successfully! Make sure to update your website with the new key.');
+                } else {
+                    alert('Error regenerating API key: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error regenerating API key. Please try again.');
+            }
+        }
+
+        async function updateApiKey() {
+            const customKeyInput = document.getElementById('customApiKey');
+            const newApiKey = customKeyInput.value.trim();
+            
+            if (!newApiKey) {
+                alert('Please enter a new API key');
+                return;
+            }
+            
+            if (newApiKey.length < 8) {
+                alert('API key must be at least 8 characters long');
+                return;
+            }
+            
+            if (!confirm('Are you sure you want to update your API key? This will replace your current key.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/business/api-key', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ new_api_key: newApiKey })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('apiKeyDisplay').textContent = data.api_key;
+                    customKeyInput.value = '';
+                    alert('API key updated successfully! Make sure to update your website with the new key.');
+                } else {
+                    alert('Error updating API key: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error updating API key. Please try again.');
+            }
+        }
+
+        async function deleteApiKey() {
+            if (!confirm('⚠️ WARNING: This will permanently delete your API key and disable your chat widget until you generate a new one. Are you absolutely sure?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/business/api-key', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('apiKeyDisplay').textContent = 'No API key set';
+                    alert('API key deleted successfully. Your chat widget is now disabled. Generate a new key to re-enable it.');
+                } else {
+                    alert('Error deleting API key: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error deleting API key. Please try again.');
             }
         }
 

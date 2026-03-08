@@ -3,6 +3,9 @@ import { authenticateBusiness, blockAuthenticated } from '../middleware/auth';
 import { 
   getDashboard, 
   getApiKey, 
+  regenerateApiKey,
+  updateApiKey,
+  deleteApiKey,
   postLogin,
   getBusinessConversations,
   getConversationDetails,
@@ -25,6 +28,9 @@ router.use(authenticateBusiness);
 
 router.get('/dashboard', getDashboard);
 router.get('/api-key', getApiKey);
+router.post('/api-key/regenerate', regenerateApiKey);
+router.put('/api-key', updateApiKey);
+router.delete('/api-key', deleteApiKey);
 
 // Conversation APIs
 router.get('/conversations', getBusinessConversations);
