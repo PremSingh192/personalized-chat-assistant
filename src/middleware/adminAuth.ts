@@ -13,9 +13,6 @@ export const authenticateAdmin = async (req: AuthRequest, res: Response, next: N
     // Check both Authorization header and cookie
     const authHeader = req.header('Authorization')?.replace('Bearer ', '');
     const cookieToken = req.cookies?.admin_token;
-    console.log('Auth header:', authHeader);
-    console.log('Cookie token:', cookieToken);
-    console.log('All cookies:', req.cookies);
     const token = authHeader || cookieToken;
     
     if (!token) {

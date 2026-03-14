@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Configuration - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+        
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+        
+        .main-content-full {
+            flex: 1;
+            padding: 2rem;
+            width: 100%;
+        }
+        
+        .header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: #666;
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .nav-link {
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .nav-link:hover {
+            background: #0056b3;
+        }
+        
+        .nav-link.active {
+            background: #28a745;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-left: 1rem;
+        }
+        
+        .config-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .config-section h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .config-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .config-item {
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: border-color 0.3s;
+        }
+        
+        .config-item:hover {
+            border-color: #667eea;
+        }
+        
+        .config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .config-title {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .config-key {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .config-value {
+            margin-bottom: 1rem;
+        }
+        
+        .config-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .config-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .config-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        
+        .config-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        
+        .connection-test {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .connection-test h3 {
+            color: #1976d2;
+            margin-bottom: 0.5rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 500px;
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 1rem;
+            background: white;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <main class="main-content-full">
+            <div class="header">
+                <div>
+                    <h1>System Configuration</h1>
+                    <p>Manage AI model settings and system configurations</p>
+                </div>
+                <div class="nav-menu">
+                    <a href="/admin/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/admin/system-config" class="nav-link active">System Config</a>
+                    <a href="/logout" class="logout-btn">Logout</a>
+                </div>
+            </div>
+            
+            <div id="alertContainer"></div>
+            
+            <!-- AI Configuration Section -->
+            <div class="config-section">
+                <h2>AI Configuration</h2>
+                
+                <div class="connection-test">
+                    <h3>Connection Status</h3>
+                    <div id="connectionStatus">Checking connection...</div>
+                    <button class="btn btn-primary" onclick="testConnection()">Test Connection</button>
+                </div>
+                
+                <div class="config-grid" id="aiConfigGrid">
+                    <div class="loading">Loading AI configurations...</div>
+                </div>
+            </div>
+            
+            <!-- All Configurations Section -->
+            <div class="config-section">
+                <h2>All System Configurations</h2>
+                
+                <div style="margin-bottom: 1rem;">
+                    <button class="btn btn-primary" onclick="showCreateConfigModal()">Add New Config</button>
+                    <button class="btn btn-secondary" onclick="refreshConfigs()">Refresh</button>
+                </div>
+                
+                <div class="config-grid" id="allConfigGrid">
+                    <div class="loading">Loading configurations...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Create/Edit Config Modal -->
+    <div id="configModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeConfigModal()">&times;</button>
+            <h2 id="modalTitle">Create Configuration</h2>
+            
+            <form id="configForm">
+                <div class="form-group">
+                    <label class="form-label">Key *</label>
+                    <input type="text" id="configKey" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Value *</label>
+                    <input type="text" id="configValue" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="configDescription" class="form-input form-textarea"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select id="configType" class="form-select">
+                        <option value="string">String</option>
+                        <option value="number">Number</option>
+                        <option value="boolean">Boolean</option>
+                        <option value="url">URL</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select id="configCategory" class="form-select">
+                        <option value="ai">AI</option>
+                        <option value="database">Database</option>
+                        <option value="system">System</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="configActive" checked>
+                        Active
+                    </label>
+                </div>
+                
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeConfigModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let currentConfigs = [];
+        
+        // Load configurations on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAIConfigs();
+            loadAllConfigs();
+            testConnection();
+        });
+        
+        // Show alert message
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+        
+        // Load AI configurations
+        async function loadAIConfigs() {
+            try {
+                const response = await fetch('/api/system-config/ai');
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderAIConfigs(data.data);
+                } else {
+                    showAlert('Failed to load AI configurations', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading AI configs:', error);
+                showAlert('Error loading AI configurations', 'error');
+            }
+        }
+        
+        // Render AI configurations
+        function renderAIConfigs(aiConfig) {
+            const grid = document.getElementById('aiConfigGrid');
+            
+            grid.innerHTML = `
+                <div class="config-item">
+                    <div class="config-header">
+                        <div>
+                            <div class="config-title">Ollama Base URL</div>
+                            <div class="config-key">ollama_base_url</div>
+                        </div>
+                        <span class="status-badge status-active">Active</span>
+                    </div>
+                    <div class="config-value">
+                        <input type="url" class="config-input" id="baseUrl" value="${aiConfig.baseUrl}" />
+                    </div>
+                    <div class="config-description">
+                        Base URL for Ollama API connections. Used for AI model communication.
+                    </div>
+                    <div class="config-actions">
+                        <button class="btn btn-primary" onclick="updateConfig('ollama_base_url', document.getElementById('baseUrl').value)">Update</button>
+                        <button class="btn btn-success" onclick="testConfig('ollama_base_url')">Test</button>
+                    </div>
+                </div>
+                
+                <div class="config-item">
+                    <div class="config-header">
+                        <div>
+                            <div class="config-title">AI Model</div>
+                            <div class="config-key">ollama_model</div>
+                        </div>
+                        <span class="status-badge status-active">Active</span>
+                    </div>
+                    <div class="config-value">
+                        <input type="text" class="config-input" id="aiModel" value="${aiConfig.model}" />
+                    </div>
+                    <div class="config-description">
+                        AI model used for chat response generation. Must be available in Ollama.
+                    </div>
+                    <div class="config-actions">
+                        <button class="btn btn-primary" onclick="updateConfig('ollama_model', document.getElementById('aiModel').value)">Update</button>
+                        <button class="btn btn-success" onclick="testConfig('ollama_model')">Test</button>
+                    </div>
+                </div>
+                
+                <div class="config-item">
+                    <div class="config-header">
+                        <div>
+                            <div class="config-title">Embedding Model</div>
+                            <div class="config-key">ollama_embedding_model</div>
+                        </div>
+                        <span class="status-badge status-active">Active</span>
+                    </div>
+                    <div class="config-value">
+                        <input type="text" class="config-input" id="embeddingModel" value="${aiConfig.embeddingModel}" />
+                    </div>
+                    <div class="config-description">
+                        Embedding model used for vector search and document similarity.
+                    </div>
+                    <div class="config-actions">
+                        <button class="btn btn-primary" onclick="updateConfig('ollama_embedding_model', document.getElementById('embeddingModel').value)">Update</button>
+                        <button class="btn btn-success" onclick="testConfig('ollama_embedding_model')">Test</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Load all configurations
+        async function loadAllConfigs() {
+            try {
+                const response = await fetch('/api/system-config');
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentConfigs = data.data;
+                    renderAllConfigs(data.data);
+                } else {
+                    showAlert('Failed to load configurations', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading configs:', error);
+                showAlert('Error loading configurations', 'error');
+            }
+        }
+        
+        // Render all configurations
+        function renderAllConfigs(configs) {
+            const grid = document.getElementById('allConfigGrid');
+            
+            if (configs.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; color: #666;">No configurations found</div>';
+                return;
+            }
+            
+            grid.innerHTML = configs.map(config => `
+                <div class="config-item">
+                    <div class="config-header">
+                        <div>
+                            <div class="config-title">${config.key}</div>
+                            <div class="config-key">Type: ${config.type} | Category: ${config.category}</div>
+                        </div>
+                        <span class="status-badge ${config.isActive ? 'status-active' : 'status-inactive'}">
+                            ${config.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </div>
+                    <div class="config-value">
+                        <input type="text" class="config-input" value="${config.value}" readonly />
+                    </div>
+                    ${config.description ? `<div class="config-description">${config.description}</div>` : ''}
+                    <div class="config-actions">
+                        <button class="btn btn-warning" onclick="editConfig('${config.key}')">Edit</button>
+                        <button class="btn btn-secondary" onclick="toggleConfig('${config.key}')">
+                            ${config.isActive ? 'Disable' : 'Enable'}
+                        </button>
+                        <button class="btn btn-secondary" onclick="deleteConfig('${config.key}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Update configuration
+        async function updateConfig(key, value) {
+            try {
+                const response = await fetch(`/api/system-config/key/${key}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ value })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Configuration updated successfully');
+                    loadAIConfigs();
+                    loadAllConfigs();
+                } else {
+                    showAlert('Failed to update configuration', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating config:', error);
+                showAlert('Error updating configuration', 'error');
+            }
+        }
+        
+        // Test connection
+        async function testConnection() {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.innerHTML = 'Testing connection...';
+            
+            try {
+                const response = await fetch('/api/system-config/test-connection');
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusDiv.innerHTML = `
+                        <div style="color: #28a745;">✅ Connected to ${data.data.baseUrl}</div>
+                        <div style="font-size: 0.9rem; color: #666;">
+                            Current model: ${data.data.model}<br>
+                            Embedding model: ${data.data.embeddingModel}<br>
+                            Available models: ${data.data.availableModels.length}
+                        </div>
+                    `;
+                } else {
+                    statusDiv.innerHTML = `<div style="color: #dc3545;">❌ Connection failed: ${data.message}</div>`;
+                }
+            } catch (error) {
+                console.error('Connection test error:', error);
+                statusDiv.innerHTML = '<div style="color: #dc3545;">❌ Connection test failed</div>';
+            }
+        }
+        
+        // Test specific configuration
+        async function testConfig(key) {
+            showAlert(`Testing ${key} configuration...`, 'info');
+            
+            // Refresh connection test after a short delay
+            setTimeout(() => {
+                testConnection();
+            }, 1000);
+        }
+        
+        // Toggle configuration
+        async function toggleConfig(key) {
+            try {
+                const response = await fetch(`/api/system-config/key/${key}/toggle`, {
+                    method: 'PATCH'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Configuration toggled successfully');
+                    loadAllConfigs();
+                } else {
+                    showAlert('Failed to toggle configuration', 'error');
+                }
+            } catch (error) {
+                console.error('Error toggling config:', error);
+                showAlert('Error toggling configuration', 'error');
+            }
+        }
+        
+        // Delete configuration
+        async function deleteConfig(key) {
+            if (!confirm(`Are you sure you want to delete configuration "${key}"?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/system-config/key/${key}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Configuration deleted successfully');
+                    loadAllConfigs();
+                } else {
+                    showAlert('Failed to delete configuration', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting config:', error);
+                showAlert('Error deleting configuration', 'error');
+            }
+        }
+        
+        // Show create config modal
+        function showCreateConfigModal() {
+            document.getElementById('modalTitle').textContent = 'Create Configuration';
+            document.getElementById('configForm').reset();
+            document.getElementById('configModal').style.display = 'block';
+        }
+        
+        // Edit configuration
+        function editConfig(key) {
+            const config = currentConfigs.find(c => c.key === key);
+            
+            if (!config) {
+                showAlert('Configuration not found', 'error');
+                return;
+            }
+            
+            document.getElementById('modalTitle').textContent = 'Edit Configuration';
+            document.getElementById('configKey').value = config.key;
+            document.getElementById('configKey').disabled = true;
+            document.getElementById('configValue').value = config.value;
+            document.getElementById('configDescription').value = config.description || '';
+            document.getElementById('configType').value = config.type;
+            document.getElementById('configCategory').value = config.category;
+            document.getElementById('configActive').checked = config.isActive;
+            
+            document.getElementById('configModal').style.display = 'block';
+        }
+        
+        // Close config modal
+        function closeConfigModal() {
+            document.getElementById('configModal').style.display = 'none';
+            document.getElementById('configKey').disabled = false;
+        }
+        
+        // Handle config form submission
+        document.getElementById('configForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const key = document.getElementById('configKey').value;
+            const value = document.getElementById('configValue').value;
+            const description = document.getElementById('configDescription').value;
+            const type = document.getElementById('configType').value;
+            const category = document.getElementById('configCategory').value;
+            const isActive = document.getElementById('configActive').checked;
+            
+            try {
+                const response = await fetch('/api/system-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        key,
+                        value,
+                        description,
+                        type,
+                        category,
+                        isActive
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Configuration created successfully');
+                    closeConfigModal();
+                    loadAllConfigs();
+                } else {
+                    showAlert('Failed to create configuration', 'error');
+                }
+            } catch (error) {
+                console.error('Error creating config:', error);
+                showAlert('Error creating configuration', 'error');
+            }
+        });
+        
+        // Refresh configurations
+        function refreshConfigs() {
+            loadAIConfigs();
+            loadAllConfigs();
+            testConnection();
+            showAlert('Configurations refreshed');
+        }
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('configModal');
+            if (e.target === modal) {
+                closeConfigModal();
+            }
+        });
+    </script>
+</body>
+</html>

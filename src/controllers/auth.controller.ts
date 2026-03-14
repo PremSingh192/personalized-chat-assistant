@@ -10,40 +10,47 @@ const adminRepository = AppDataSource.getRepository(Admin);
 const businessRepository = AppDataSource.getRepository(Business);
 
 export const getLogin = (req: Request, res: Response) => {
-  res.render('login');
+  res.render('login-new');
 };
 
 export const postLogin = async (req: Request, res: Response) => {
   try {
-    const { email, password, userType } = req.body;
+    const { email, password } = req.body;
     
-    if (!userType || !['admin', 'business'].includes(userType)) {
-      return res.status(400).render('login', { error: 'Invalid user type' });
+    if (!email || !password) {
+      return res.status(400).render('login-new', { error: 'Email and password are required' });
     }
     
     let user: Admin | Business | null = null;
     let isValidPassword = false;
+    let userType: 'admin' | 'business' | null = null;
     
-    if (userType === 'admin') {
-      user = await adminRepository.findOne({ where: { email } });
-      if (user) {
-        isValidPassword = await bcrypt.compare(password, user.password);
-      }
-    } else {
-      user = await businessRepository.findOne({ where: { email } });
-      if (user) {
-        isValidPassword = await bcrypt.compare(password, user.password);
+    // Try admin first
+    const admin = await adminRepository.findOne({ where: { email } });
+    if (admin) {
+      user = admin;
+      isValidPassword = await bcrypt.compare(password, admin.password);
+      userType = 'admin';
+    }
+    
+    // If not admin, try business
+    if (!user) {
+      const business = await businessRepository.findOne({ where: { email } });
+      if (business) {
+        user = business;
+        isValidPassword = await bcrypt.compare(password, business.password);
+        userType = 'business';
       }
     }
     
     if (!user || !isValidPassword) {
-      return res.status(401).render('login', { 
+      return res.status(401).render('login-new', { 
         error: 'Invalid credentials',
-        userType 
+        email 
       });
     }
     
-    const token = jwt.sign({ id: user.id }, config.jwt.secret);
+    const token = jwt.sign({ id: user.id, type: userType }, config.jwt.secret);
     
     // Set appropriate cookie based on user type
     const cookieName = userType === 'admin' ? 'admin_token' : 'business_token';
@@ -58,7 +65,7 @@ export const postLogin = async (req: Request, res: Response) => {
     res.redirect(`/${userType}/dashboard`);
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).render('login', { error: 'Login error' });
+    res.status(500).render('login-new', { error: 'Login error' });
   }
 };
 

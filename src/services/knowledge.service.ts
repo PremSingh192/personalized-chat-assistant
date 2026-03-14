@@ -15,7 +15,6 @@ export const knowledgeService = {
   // Enhanced PDF extraction with error handling and optimization
   async extractPDFText(buffer: Buffer): Promise<string> {
     try {
-      console.log('📄 Starting PDF text extraction...');
       
       const data = await pdfParse(buffer);
       
@@ -23,8 +22,6 @@ export const knowledgeService = {
       
       // Post-process extracted text for quality
       extractedText = this.postProcessExtractedText(extractedText);
-      
-      console.log(`✅ PDF extraction complete: ${extractedText.length} characters extracted`);
       
       if (extractedText.length < 50) {
         console.warn('⚠️ Very little text extracted from PDF');
@@ -48,7 +45,6 @@ export const knowledgeService = {
   // Enhanced web scraping with better content extraction and error handling
   async scrapeWebContent(url: string): Promise<string> {
     try {
-      console.log(`🌐 Starting web scraping for: ${url}`);
       
       // Validate URL format
       const urlObj = new URL(url);
@@ -100,8 +96,6 @@ export const knowledgeService = {
       // Post-process extracted content
       extractedContent = this.postProcessExtractedText(extractedContent);
       
-      console.log(`✅ Web scraping complete: ${extractedContent.length} characters extracted`);
-      
       if (extractedContent.length < 100) {
         console.warn('⚠️ Very little content extracted from webpage');
       }
@@ -129,7 +123,6 @@ export const knowledgeService = {
     let worker: any = null;
     
     try {
-      console.log('🖼️ Starting OCR text extraction...');
       
       // Validate image buffer
       if (buffer.length < 1000) {
@@ -152,8 +145,6 @@ export const knowledgeService = {
       // Clean up OCR text
       let extractedText = text || '';
       extractedText = this.postProcessExtractedText(extractedText);
-      
-      console.log(`✅ OCR extraction complete: ${extractedText.length} characters extracted`);
       
       if (extractedText.length < 10) {
         console.warn('⚠️ Very little text extracted from image');
@@ -182,8 +173,6 @@ export const knowledgeService = {
     if (!text || text.trim().length === 0) {
       return [];
     }
-    
-    console.log(`📝 Starting text chunking: ${text.length} characters, chunk size: ${chunkSize}, overlap: ${overlap}`);
     
     // Pre-process text
     const cleanedText = this.preProcessText(text);
@@ -218,34 +207,18 @@ export const knowledgeService = {
     // Filter out very small chunks
     const filteredChunks = chunks.filter(chunk => chunk.length >= 50);
     
-    console.log(`✅ Text chunking complete: ${filteredChunks.length} chunks created`);
-    
     return filteredChunks;
   },
 
   // Enhanced document processing with batch processing and error recovery
   async processDocument(document: KnowledgeDocument): Promise<void> {
     try {
-      console.log(`🔄 Processing document: ${document.title} (ID: ${document.id})`);
       
       // Clean up existing embeddings for this document
       await this.deleteDocumentEmbeddings(document.id);
       
       // Generate chunks with optimized parameters
       const chunks = this.chunkText(document.content, 400, 30); // Smaller chunks for better relevance
-      
-      console.log(`📊 Generated ${chunks.length} chunks for processing`);
-      console.log(`📝 Document content length: ${document.content.length} characters`);
-      
-      // Log first few chunks for debugging
-      chunks.slice(0, 3).forEach((chunk, index) => {
-        console.log(`� Chunk ${index + 1}: "${chunk.substring(0, 150)}..." (length: ${chunk.length})`);
-      });
-      
-      if (chunks.length === 0) {
-        console.warn('⚠️ No chunks generated from document content');
-        return;
-      }
       
       // Process chunks in batches to avoid overwhelming the system
       const batchSize = 5;
@@ -254,15 +227,10 @@ export const knowledgeService = {
       for (let i = 0; i < chunks.length; i += batchSize) {
         const batch = chunks.slice(i, i + batchSize);
         
-        console.log(`🔄 Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(chunks.length / batchSize)}`);
-        
         // Process batch concurrently
-        const batchPromises = batch.map(async (chunk, index) => {
+        const batchPromises = batch.map(async (chunk: string, index: number) => {
           try {
-            console.log(`🔍 Processing chunk ${i + index}: "${chunk.substring(0, 100)}..."`);
             const embedding = await aiService.generateEmbedding(chunk);
-            
-            console.log(`✅ Generated embedding for chunk ${i + index}, vector length: ${embedding.length}`);
             
             const embeddingRecord = embeddingRepository.create({
               document_id: document.id,
@@ -271,12 +239,10 @@ export const knowledgeService = {
             });
             
             const savedEmbedding = await embeddingRepository.save(embeddingRecord);
-            console.log(`💾 Saved embedding ${savedEmbedding.id} for chunk ${i + index}`);
             
             return savedEmbedding;
           } catch (error: any) {
             console.error(`❌ Error processing chunk ${i + index}:`, error);
-            console.error(`❌ Chunk content: "${chunk.substring(0, 100)}..."`);
             throw error;
           }
         });
@@ -295,19 +261,13 @@ export const knowledgeService = {
         }
       }
       
-      console.log(`✅ Document processing complete: ${processedCount}/${chunks.length} chunks processed`);
-      
       // Verify embeddings were actually saved
       const savedEmbeddings = await embeddingRepository.find({
         where: { document_id: document.id }
       });
       
-      console.log(`🔍 Verification: Found ${savedEmbeddings.length} embeddings saved for document ${document.id}`);
-      
       if (savedEmbeddings.length === 0) {
         console.error('❌ CRITICAL: No embeddings were saved despite processing completion!');
-      } else {
-        console.log('✅ Embeddings successfully saved:', savedEmbeddings.map(e => ({ id: e.id, chunkLength: e.chunk_text.length })));
       }
       
       // Update document status or metadata if needed
@@ -327,11 +287,7 @@ export const knowledgeService = {
   // Enhanced embedding cleanup with better error handling
   async deleteDocumentEmbeddings(documentId: number): Promise<void> {
     try {
-      console.log(`🗑️ Deleting embeddings for document: ${documentId}`);
-      
       const result = await embeddingRepository.delete({ document_id: documentId });
-      
-      console.log(`✅ Deleted ${result.affected || 0} embeddings for document ${documentId}`);
     } catch (error: any) {
       console.error(`❌ Error deleting embeddings for document ${documentId}:`, error);
       throw new Error(`Failed to delete embeddings: ${error?.message || 'Unknown error'}`);

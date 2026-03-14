@@ -313,8 +313,6 @@ export const regenerateApiKey = async (req: Request, res: Response) => {
     // Update business with new API key
     await businessRepository.update(businessId, { api_key: newApiKey });
     
-    console.log(`API key regenerated for business ${business.name} (${business.id})`);
-    
     res.json({ 
       success: true,
       message: 'API key regenerated successfully',
@@ -363,8 +361,6 @@ export const updateApiKey = async (req: Request, res: Response) => {
     // Update business with new API key
     await businessRepository.update(businessId, { api_key: new_api_key });
     
-    console.log(`API key updated for business ${business.name} (${business.id}): ${oldApiKey} -> ${new_api_key}`);
-    
     res.json({ 
       success: true,
       message: 'API key updated successfully',
@@ -390,8 +386,6 @@ export const deleteApiKey = async (req: Request, res: Response) => {
     
     // Set API key to null (effectively disabling it)
     await businessRepository.update(businessId, { api_key: null });
-    
-    console.log(`API key deleted for business ${business.name} (${business.id}): ${oldApiKey}`);
     
     res.json({ 
       success: true,
@@ -429,10 +423,6 @@ export const getBusinessConversations = async (req: Request, res: Response) => {
       .take(limit)
       .skip(offset)
       .getMany();
-    
-    console.log('Loaded conversations:', conversations.length);
-    console.log('First conversation visitor data:', conversations[0]?.visitor);
-    console.log('First conversation messages count:', conversations[0]?.messages?.length);
     
     // Get total count for pagination
     const totalConversations = await conversationRepository.count({

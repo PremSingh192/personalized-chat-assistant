@@ -6,6 +6,7 @@ import { Conversation } from '../entities/Conversation';
 import { Message } from '../entities/Message';
 import { KnowledgeDocument } from '../entities/KnowledgeDocument';
 import { Embedding } from '../entities/Embedding';
+import { SystemConfig } from '../entities/SystemConfig';
 import config from './index';
 
 export const AppDataSource = new DataSource({
@@ -16,8 +17,8 @@ export const AppDataSource = new DataSource({
   password: config.database.password,
   database: config.database.database,
   synchronize: config.database.synchronize,
-  logging: config.database.logging,
-  entities: [Admin, Business, Visitor, Conversation, Message, KnowledgeDocument, Embedding],
+  logging: false, // Disabled for production
+  entities: [Admin, Business, Visitor, Conversation, Message, KnowledgeDocument, Embedding, SystemConfig],
   migrations: ['src/migrations/*.ts'],
   subscribers: ['src/subscribers/*.ts'],
 });

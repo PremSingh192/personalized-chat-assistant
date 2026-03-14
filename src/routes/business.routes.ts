@@ -1,12 +1,11 @@
 import { Router } from 'express';
-import { authenticateBusiness, blockAuthenticated } from '../middleware/auth';
+import { authenticateBusiness } from '../middleware/auth';
 import { 
   getDashboard, 
   getApiKey, 
   regenerateApiKey,
   updateApiKey,
   deleteApiKey,
-  postLogin,
   getBusinessConversations,
   getConversationDetails,
   getVisitorConversations,
@@ -14,14 +13,6 @@ import {
 } from '../controllers/business.controller';
 
 const router = Router();
-
-
-// Business routes with protection
-router.get('/login', blockAuthenticated('business'), (req, res) => res.render('business/login'));
-router.post('/login', (req, res) => {
-  req.body.userType = 'business';
-  return postLogin(req, res);
-});
 
 // All business routes require authentication
 router.use(authenticateBusiness);

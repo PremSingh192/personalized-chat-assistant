@@ -97,18 +97,7 @@ export const getKnowledgeDocuments = async (req: Request, res: Response) => {
       order: { created_at: 'DESC' }
     });
     
-    console.log('📚 Knowledge documents for business', business.id, ':');
-    documents.forEach((doc, index) => {
-      console.log(`📄 Document ${index + 1}:`, {
-        id: doc.id,
-        title: doc.title,
-        source_type: doc.source_type,
-        embeddingsCount: doc.embeddings ? doc.embeddings.length : 0,
-        embeddings: doc.embeddings
-      });
-    });
-    
-    res.json(documents);
+    return res.json({ success: true, data: documents });
   } catch (error) {
     console.error('Error fetching knowledge documents:', error);
     res.status(500).json({ error: 'Error fetching knowledge documents' });
@@ -128,15 +117,11 @@ export const deleteKnowledgeDocument = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Document not found' });
     }
     
-    console.log(`🗑️ Deleting document ${documentId} and its embeddings for business ${business.id}`);
-    
     // First delete all associated embeddings
     await knowledgeService.deleteDocumentEmbeddings(document.id);
     
     // Then delete the document
     await knowledgeDocumentRepository.remove(document);
-    
-    console.log(`✅ Document ${documentId} and its embeddings deleted successfully`);
     
     res.json({ message: 'Document and its embeddings deleted successfully' });
   } catch (error) {

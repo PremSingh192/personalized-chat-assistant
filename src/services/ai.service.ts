@@ -2,26 +2,33 @@ import axios from 'axios';
 import { AppDataSource } from '../config/database';
 import { Embedding } from '../entities/Embedding';
 import { KnowledgeDocument } from '../entities/KnowledgeDocument';
-import config from '../config';
+import { SystemConfigService } from './systemConfig.service';
 
 const embeddingRepository = AppDataSource.getRepository(Embedding);
 const knowledgeDocumentRepository = AppDataSource.getRepository(KnowledgeDocument);
 
 // Production-level AI service with optimized retrieval and response generation
 export const aiService = {
+  // Get current AI configuration
+  async getAIConfig() {
+    return await SystemConfigService.getAIConfigs();
+  },
   // Enhanced embedding generation with caching and retry logic
   async generateEmbedding(text: string): Promise<number[]> {
     const cacheKey = `embedding:${Buffer.from(text).toString('base64').slice(0, 32)}`;
 
     try {
+      // Get current AI configuration
+      const aiConfig = await this.getAIConfig();
+
       // Add retry logic for robustness
       const maxRetries = 3;
       let lastError: any;
 
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          const response = await axios.post(`${config.ollama.url}/api/embeddings`, {
-            model: config.ollama.embeddingModel,
+          const response = await axios.post(`${aiConfig.baseUrl}/api/embeddings`, {
+            model: aiConfig.embeddingModel,
             prompt: text
           }, {
             timeout: 30000, // 30 second timeout
@@ -59,7 +66,6 @@ export const aiService = {
   // Enhanced response generation with streaming support
   async generateResponse(businessId: number, question: string): Promise<string> {
     try {
-      console.log(`🤖 Generating AI response for business ${businessId}, question: "${question}"`);
 
       const relevantDocs = await this.retrieveRelevantDocuments(businessId, question);
 
@@ -69,12 +75,11 @@ export const aiService = {
       // Dynamic prompt engineering based on context quality
       const prompt = this.buildOptimizedPrompt(context, question);
 
-      console.log(`📤 Sending streaming request to Ollama: ${config.ollama.url}`);
-      console.log(`🧠 Using model: ${config.ollama.model}`);
-      console.log(`📊 Context quality score: ${this.calculateContextQuality(relevantDocs)}`);
+      // Get current AI configuration
+      const aiConfig = await this.getAIConfig();
 
-      const response = await axios.post(`${config.ollama.url}/api/generate`, {
-        model: config.ollama.model,
+      const response = await axios.post(`${aiConfig.baseUrl}/api/generate`, {
+        model: aiConfig.model,
         prompt: prompt,
         stream: true, // Enable streaming
         options: {
@@ -88,8 +93,6 @@ export const aiService = {
         timeout: 60000, // 60 second timeout for generation
         responseType: 'stream' // Important for streaming
       });
-
-      console.log(`✅ Ollama streaming response started: ${response.status}`);
 
       let fullResponse = '';
       const stream = response.data;
@@ -106,7 +109,6 @@ export const aiService = {
               fullResponse += data.response;
             }
             if (data.done) {
-              console.log(`✅ Streaming completed. Full response: "${fullResponse}"`);
               break;
             }
           } catch (e) {
@@ -128,7 +130,8 @@ export const aiService = {
       console.error('❌ Error generating AI response:', error);
 
       if (error.code === 'ECONNREFUSED') {
-        console.error('🔌 Ollama connection refused. Check if Ollama is running at:', config.ollama.url);
+        const aiConfig = await this.getAIConfig();
+        console.error('🔌 Ollama connection refused. Check if Ollama is running at:', aiConfig.baseUrl);
       }
 
       if (error.code === 'ECONNABORTED') {
@@ -143,16 +146,16 @@ export const aiService = {
   // New streaming method for real-time response delivery
   async* generateResponseStream(businessId: number, question: string): AsyncGenerator<string, void, unknown> {
     try {
-      console.log(`🤖 Starting streaming AI response for business ${businessId}, question: "${question}"`);
 
       const relevantDocs = await this.retrieveRelevantDocuments(businessId, question);
       const context = this.prepareOptimizedContext(relevantDocs, question);
       const prompt = this.buildOptimizedPrompt(context, question);
 
-      console.log(`📤 Sending streaming request to Ollama: ${config.ollama.url}`);
+      // Get current AI configuration
+      const aiConfig = await this.getAIConfig();
 
-      const response = await axios.post(`${config.ollama.url}/api/generate`, {
-        model: config.ollama.model,
+      const response = await axios.post(`${aiConfig.baseUrl}/api/generate`, {
+        model: aiConfig.model,
         prompt: prompt,
         stream: true,
         options: {
@@ -182,7 +185,6 @@ export const aiService = {
               yield data.response; // Yield each chunk
             }
             if (data.done) {
-              console.log(`✅ Streaming completed. Full response: "${fullResponse}"`);
               return; // End the generator
             }
           } catch (e) {
@@ -199,7 +201,6 @@ export const aiService = {
   // Enhanced document retrieval with multiple similarity strategies
   async retrieveRelevantDocuments(businessId: number, query: string): Promise<Embedding[]> {
     try {
-      console.log(`🔍 Retrieving relevant documents for query: "${query}"`);
 
       const queryEmbedding = await this.generateEmbedding(query);
 
@@ -212,8 +213,6 @@ export const aiService = {
         .orderBy('embedding.created_at', 'DESC') // Get recent embeddings first
         .limit(100) // Limit for performance
         .getMany();
-
-      console.log(`📊 Found ${relevantEmbeddings.length} embeddings to analyze`);
 
       // Multi-strategy similarity calculation
       const scoredEmbeddings = await Promise.all(
@@ -243,8 +242,6 @@ export const aiService = {
       const filteredEmbeddings = scoredEmbeddings
         .filter(item => item.finalScore > 0.3) // Minimum relevance threshold
         .sort((a, b) => b.finalScore - a.finalScore);
-
-      console.log(`🎯 Selected ${filteredEmbeddings.length} highly relevant documents`);
 
       // Return top documents with diversity
       return this.selectDiverseDocuments(filteredEmbeddings.slice(0, 10));

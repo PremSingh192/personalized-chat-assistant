@@ -22,11 +22,11 @@ if (redis) {
   });
 
   redisClient.on('connect', () => {
-    console.log('Redis Client Connected');
+    // Redis Client Connected
   });
 
   redisClient.on('ready', () => {
-    console.log('Redis Client Ready');
+    // Redis Client Ready
   });
 }
 

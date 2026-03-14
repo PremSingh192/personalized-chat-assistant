@@ -128,17 +128,18 @@
         
         .thinking-indicator {
             display: none;
-            padding: 0.75rem 1rem;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 0.5rem 1rem;
+            background: transparent;
             border-radius: 18px;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             width: fit-content;
-            color: white;
+            color: #666;
             font-size: 0.9rem;
             align-items: center;
             gap: 8px;
             margin-left: auto; /* Align to right side */
             margin-right: 0;
+            font-style: italic;
         }
         
         .thinking-content {
@@ -161,7 +162,7 @@
         }
         
         .thinking-dot {
-            background: white;
+            background: #666;
         }
         
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
@@ -229,7 +230,7 @@
     
     <div class="thinking-indicator" id="thinkingIndicator">
         <div class="thinking-content">
-            <span>AI is thinking</span>
+            <span>Thinking</span>
             <div class="thinking-dots">
                 <div class="thinking-dot"></div>
                 <div class="thinking-dot"></div>
@@ -283,13 +284,11 @@
         // Chat History API Functions
         async function loadChatHistory(page = 1, limit = 50) {
             try {
-                console.log(`Loading chat history page ${page} with limit ${limit}`);
                 
                 const response = await fetch(`${window.location.origin}/api/chat/history?api_key=${API_KEY}&device_id=${deviceId}&page=${page}&limit=${limit}`);
                 const data = await response.json();
                 
                 if (data.success) {
-                    console.log(`Loaded ${data.data.messages.length} messages`);
                     return data.data;
                 } else {
                     console.error('Failed to load chat history:', data.message);
@@ -303,13 +302,11 @@
         
         async function loadConversationSummary() {
             try {
-                console.log('Loading conversation summary');
                 
                 const response = await fetch(`${window.location.origin}/api/chat/summary?api_key=${API_KEY}&device_id=${deviceId}`);
                 const data = await response.json();
                 
                 if (data.success) {
-                    console.log('Conversation summary loaded:', data.data);
                     return data.data;
                 } else {
                     console.error('Failed to load conversation summary:', data.message);
@@ -354,7 +351,6 @@
             });
             
             socket.on('connect', async () => {
-                console.log('Connected to chat server');
                 
                 // Load chat history via REST API instead of socket
                 const chatHistory = await loadChatHistory();
@@ -381,11 +377,6 @@
             // We're now using REST API for chat history
             
             socket.on('message', (data) => {
-                console.log('Message received:', data);
-                console.log('Current socket rooms:', socket.rooms);
-                console.log('Message sender type:', data.sender_type);
-                console.log('Message content:', data.message);
-                console.log('Message timestamp:', data.timestamp);
                 
                 // Hide thinking indicator when AI response arrives
                 if (data.sender_type === 'bot') {
@@ -397,7 +388,6 @@
             
             // Handle streaming AI chunks
             socket.on('ai_chunk', (data) => {
-                console.log('AI chunk received:', data);
                 
                 // Hide thinking indicator on first chunk
                 hideThinkingIndicator();
@@ -417,7 +407,6 @@
             
             // Handle streaming completion
             socket.on('ai_complete', (data) => {
-                console.log('AI streaming completed:', data);
                 
                 if (currentStreamingMessage) {
                     // Convert streaming message to regular message
@@ -433,7 +422,6 @@
             
             // Handle streaming errors
             socket.on('ai_error', (data) => {
-                console.log('AI streaming error:', data);
                 hideThinkingIndicator();
                 
                 if (currentStreamingMessage) {
@@ -466,7 +454,6 @@
         }
         
         function addMessage(sender, message, timestamp) {
-            console.log('addMessage called with:', { sender, message, timestamp });
             const messagesContainer = document.getElementById('chatMessages');
             if (!messagesContainer) {
                 console.error('chatMessages container not found!');
@@ -481,11 +468,9 @@
             `;
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            console.log('Message added to UI');
         }
         
         function addStreamingMessage(sender, timestamp) {
-            console.log('addStreamingMessage called with:', { sender, timestamp });
             const messagesContainer = document.getElementById('chatMessages');
             if (!messagesContainer) {
                 console.error('chatMessages container not found!');
@@ -503,7 +488,6 @@
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
-            console.log('Streaming message added to UI');
             return messageDiv;
         }
         
@@ -538,7 +522,6 @@
                 timeElement.textContent = timestamp.toLocaleTimeString();
             }
             
-            console.log('Streaming message finalized');
         }
         
         function sendMessage() {

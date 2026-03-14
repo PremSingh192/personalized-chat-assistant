@@ -26,6 +26,25 @@
             color: #333;
             font-size: 1.5rem;
         }
+        .nav-menu {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .nav-link {
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .nav-link:hover {
+            background: #0056b3;
+        }
+        .nav-link.active {
+            background: #28a745;
+        }
         .logout-btn {
             background: #dc3545;
             color: white;
@@ -34,6 +53,7 @@
             border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
+            margin-left: 1rem;
         }
         .container {
             max-width: 1200px;
@@ -164,7 +184,11 @@
 <body>
     <div class="header">
         <h1>Admin Dashboard</h1>
-        <a href="/logout" class="logout-btn">Logout</a>
+        <div class="nav-menu">
+            <a href="/admin/dashboard" class="nav-link active">Dashboard</a>
+            <a href="/admin/system-config" class="nav-link">System Config</a>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
     </div>
 
     <div class="container">

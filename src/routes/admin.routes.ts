@@ -1,25 +1,21 @@
 import { Router } from 'express';
-import { authenticateAdmin, blockAuthenticated } from '../middleware/auth';
+import { authenticateAdmin } from '../middleware/auth';
 import { 
   getDashboard, 
-  createBusiness, 
-  postLogin
+  createBusiness
 } from '../controllers/admin.controller';
 
 const router = Router();
-
-// Universal login routes
-// Admin routes with protection
-router.get('/login', blockAuthenticated('admin'), (req, res) => res.render('admin/login'));
-router.post('/login', (req, res) => {
-  req.body.userType = 'admin';
-  return postLogin(req, res);
-});
 
 // All admin routes require authentication
 router.use(authenticateAdmin);
 
 router.get('/dashboard', getDashboard);
 router.post('/business/create', createBusiness);
+
+// System configuration page
+router.get('/system-config', (req, res) => {
+  res.render('admin/system-config');
+});
 
 export default router;

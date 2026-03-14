@@ -19,8 +19,11 @@ import chatRoutes from './routes/chat.routes';
 import knowledgeRoutes from './routes/knowledge.routes';
 import businessKnowledgeRoutes from './routes/business-knowledge.routes';
 import chatHistoryRoutes from './routes/chatHistory.routes';
+import systemConfigRoutes from './routes/systemConfig.routes';
 
 import { chatSocket } from './socket/chat.socket';
+import { ensureAdminExists } from './scripts/ensureAdmin';
+import { SystemConfigService } from './services/systemConfig.service';
 
 const app = express();
 const server = createServer(app);
@@ -30,6 +33,18 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
+
+// Check if admin exists in production
+if (process.env.NODE_ENV === 'production') {
+  ensureAdminExists()
+    .then(() => {
+      // Admin check completed successfully
+    })
+    .catch((error) => {
+      console.error('❌ Admin check failed:', error);
+      process.exit(1);
+    });
+}
 
 app.use(helmet({
     contentSecurityPolicy: false, // Disable CSP for development to allow iframe embedding
@@ -83,6 +98,7 @@ app.use(authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/chat', chatHistoryRoutes);
 app.use('/api/knowledge', knowledgeRoutes);
+app.use('/api/system-config', systemConfigRoutes);
 
 // Widget JavaScript file route
 app.get('/widget.js', (req, res) => {
@@ -101,14 +117,14 @@ app.get('/widget.js', (req, res) => {
       console.error('Error serving widget.js:', err);
       res.status(404).send('Widget script not found');
     } else {
-      console.log('✅ Widget.js served successfully');
+      // Widget.js served successfully
     }
   });
 });
 
-// Root route - serve universal login page
+// Root route - serve landing page
 app.get('/', (req, res) => {
-  res.render('login');
+  res.render('landing');
 });
 
 app.get('/widget', async (req, res) => {
@@ -142,13 +158,14 @@ chatSocket(io);
 const startServer = async () => {
   try {
     await AppDataSource.initialize();
-    console.log('Database connected successfully');
+    
+    // Initialize default system configurations
+    await SystemConfigService.initializeDefaults();
     
     await connectRedis();
-    console.log('Redis connected successfully');
 
     server.listen(config.server.port, () => {
-      console.log(`Server running on port ${config.server.port}`);
+      // Server running successfully
     });
   } catch (error) {
     console.error('Error starting server:', error);

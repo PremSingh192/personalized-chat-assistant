@@ -19,11 +19,6 @@ export const authenticateUser = async (req: AuthRequest, res: Response, next: Ne
     const adminCookie = req.cookies?.admin_token;
     const businessCookie = req.cookies?.business_token;
     
-    console.log('Auth header:', authHeader);
-    console.log('Admin cookie:', adminCookie);
-    console.log('Business cookie:', businessCookie);
-    console.log('All cookies:', req.cookies);
-    
     // Try admin token first
     let token = authHeader || adminCookie || businessCookie;
     let userType: 'admin' | 'business' = 'admin';

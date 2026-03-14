@@ -41,7 +41,6 @@ export const chatSocket = (io: Server) => {
   });
 
   io.on('connection', (socket: AuthenticatedSocket) => {
-    console.log(`Client connected: ${socket.id} for business: ${socket.business?.name}`);
 
     socket.on('join_chat', async (data: { deviceId: string; userAgent: string }) => {
       try {
@@ -65,12 +64,9 @@ export const chatSocket = (io: Server) => {
         if (redisClient) {
           const redisKey = `visitor:${socket.business!.id}:${visitor.id}:socket`;
           await redisClient.set(redisKey, socket.id, { EX: 3600 }); // 1 hour expiry
-          console.log(`Stored socket ID ${socket.id} for visitor ${visitor.id} in Redis`);
         }
         
         socket.join(`conversation_${conversation.id}`);
-        
-        console.log(`Visitor ${visitor.id} joined conversation ${conversation.id}`);
         
         // Don't emit chat history through socket anymore
         // Frontend will fetch it via REST API
@@ -82,15 +78,12 @@ export const chatSocket = (io: Server) => {
 
     socket.on('message', async (data: { message: string }) => {
       try {
-        console.log(`Received message from client: ${socket.id}, data:`, data);
         
         if (!socket.visitorId || !socket.conversationId) {
           return socket.emit('error', { message: 'Not in a conversation' });
         }
 
         const { message } = data;
-        
-        console.log(`Saving visitor message: "${message}" for conversation ${socket.conversationId}`);
         
         // Emit visitor message to business dashboard (other clients in room)
         socket.to(`conversation_${socket.conversationId}`).emit('message', {
@@ -99,11 +92,8 @@ export const chatSocket = (io: Server) => {
           timestamp: new Date()
         });
 
-        console.log('Starting streaming AI response...');
-        
         // Start streaming response
         const streamCallback = (chunk: string) => {
-          console.log(`Emitting chunk: "${chunk}"`);
           
           // Send chunk to visitor
           if (redisClient && socket.visitorId) {
@@ -144,8 +134,6 @@ export const chatSocket = (io: Server) => {
           message,
           streamCallback
         );
-
-        console.log(`Streaming completed. Full response: "${fullResponse}"`);
 
         // Send completion signal
         if (redisClient && socket.visitorId) {
@@ -206,14 +194,12 @@ export const chatSocket = (io: Server) => {
     });
 
     socket.on('disconnect', () => {
-      console.log(`Client disconnected: ${socket.id}`);
-      console.log(`Socket was in rooms: ${socket.rooms}`);
       
       // Clean up Redis entry for this visitor
       if (redisClient && socket.visitorId && socket.business) {
         const redisKey = `visitor:${socket.business.id}:${socket.visitorId}:socket`;
         redisClient.del(redisKey).then(() => {
-          console.log(`Cleaned up Redis entry for visitor ${socket.visitorId}`);
+          // Redis entry cleaned up
         }).catch((err: any) => {
           console.error('Error cleaning up Redis entry:', err);
         });
