@@ -113,7 +113,7 @@ app.get('/widget.js', (req, res) => {
   res.setHeader('Content-Type', 'application/javascript');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.sendFile(path.join(__dirname, 'public', 'widget.js'));
+  res.sendFile(path.join(__dirname, 'public', 'widget', 'widget.js'));
 });
 
 // Sample HTML page route
