@@ -113,16 +113,12 @@ app.get('/widget.js', (req, res) => {
   res.setHeader('Content-Type', 'application/javascript');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  
-  const widgetPath = path.join(__dirname, 'public', 'widget', 'widget.js');
-  res.sendFile(widgetPath, (err) => {
-    if (err) {
-      console.error('Error serving widget.js:', err);
-      res.status(404).send('Widget script not found');
-    } else {
-      // Widget.js served successfully
-    }
-  });
+  res.sendFile(path.join(__dirname, 'public', 'widget.js'));
+});
+
+// Sample HTML page route
+app.get('/sample', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'widget', 'sample.html'));
 });
 
 // Root route - serve landing page
