@@ -217,8 +217,17 @@ export const knowledgeService = {
       // Clean up existing embeddings for this document
       await this.deleteDocumentEmbeddings(document.id);
       
+      // Validate document content
+      if (!document.content || document.content.trim().length === 0) {
+        throw new Error('Document content is empty');
+      }
+      
       // Generate chunks with optimized parameters
       const chunks = this.chunkText(document.content, 400, 30); // Smaller chunks for better relevance
+      
+      if (chunks.length === 0) {
+        throw new Error('No valid chunks could be generated from document content');
+      }
       
       // Process chunks in batches to avoid overwhelming the system
       const batchSize = 5;

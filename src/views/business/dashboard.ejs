@@ -1388,12 +1388,12 @@
             
             try {
                 const response = await fetch('/business/knowledge/documents');
-                const documents = await response.json();
-                
-                console.log('📡 API Response status:', response.status);
-                console.log('📡 Raw API Response:', documents);
+                const apiResponse = await response.json();
                 
                 loadingElement.style.display = 'none';
+                
+                // Extract documents from the new API response format
+                const documents = apiResponse.data || [];
                 
                 if (documents.length === 0) {
                     emptyElement.style.display = 'block';
@@ -1412,27 +1412,17 @@
         function displayKnowledgeDocuments(documents) {
             const listElement = document.getElementById('knowledgeList');
             
-            console.log('📚 Knowledge documents received:', documents);
-            documents.forEach((doc, index) => {
-                console.log(`📄 Document ${index + 1}:`, {
-                    id: doc.id,
-                    title: doc.title,
-                    source_type: doc.source_type,
-                    embeddings: doc.embeddings,
-                    embeddingsCount: doc.embeddings ? doc.embeddings.length : 0
-                });
-            });
-            
             listElement.innerHTML = documents.map(doc => `
                 <div class="knowledge-item">
                     <div class="knowledge-item-header">
                         <div class="knowledge-item-title">${doc.title}</div>
                         <span class="knowledge-item-type ${doc.source_type}">${getSourceTypeLabel(doc.source_type)}</span>
+                        ${doc.is_processed ? '<span class="status-badge processed">Processed</span>' : '<span class="status-badge processing">Processing...</span>'}
                     </div>
                     <div class="knowledge-item-meta">
                         <span>Created: ${new Date(doc.created_at).toLocaleDateString()}</span>
                         <div class="knowledge-item-actions">
-                            <span class="knowledge-item-embeddings">${doc.embeddings ? doc.embeddings.length : 0} embeddings</span>
+                            <span class="knowledge-item-embeddings">${doc.embedding_count || 0} embeddings</span>
                             <button class="delete-btn" data-document-id="${doc.id}">Delete</button>
                         </div>
                     </div>
@@ -1619,8 +1609,6 @@
         function displayConversationInfo(conversation) {
             const visitorInfo = document.querySelector('.visitor-info');
             const conversationStats = document.querySelector('.conversation-stats');
-
-            console.log('displayConversationInfo Conversation:', conversation);
             
             // Handle visitor data - if visitor is null, use visitor_id to show basic info
             let visitorDisplay = 'N/A';
@@ -1700,7 +1688,6 @@
         
         // Load business conversations using new API
         async function loadBusinessConversations(page = 1) {
-            console.log(`Loading conversations for page ${page}`);
             
             // Update loading state
             const tbody = document.getElementById('conversationsTableBody');
@@ -1712,22 +1699,16 @@
             paginationControls.innerHTML = '<span></span><span class="pagination-info">Loading...</span><span></span>';
             
             try {
-                console.log(`Making request to: /business/conversations?page=${page}&limit=10`);
                 const response = await fetch(`/business/conversations?page=${page}&limit=10`);
-                console.log(`Response status: ${response.status}`);
                 
                 if (!response.ok) {
                     console.error(`HTTP error! status: ${response.status}`);
-                    const errorData = await response.json();
-                    console.error('Error response:', errorData);
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const data = await response.json();
-                console.log('API Response:', data);
                 
                 if (data.conversations && Array.isArray(data.conversations)) {
-                    console.log(`Found ${data.conversations.length} conversations`);
                     displayConversations(data.conversations);
                     updatePaginationControls(data.pagination);
                 } else {
@@ -1747,16 +1728,12 @@
             const tbody = document.querySelector('.conversation-table tbody');
             tbody.innerHTML = '';
             
-            console.log('Displaying conversations:', conversations);
-            
             if (!Array.isArray(conversations)) {
                 console.error('Conversations is not an array:', conversations);
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #dc3545;">Error: Invalid conversations data</td></tr>';
                 return;
             }
             
             conversations.forEach((conversation, index) => {
-                console.log(`Conversation ${index}:`, conversation);
                 
                 // Safely extract data with fallbacks for different property names
                 const conversationId = conversation.id || conversation.conversation_id || 'N/A';
@@ -1779,14 +1756,7 @@
                 // Use lastActivity from API response, fallback to created_at
                 const lastActivity = conversation.lastActivity || conversation.last_activity || conversation.created_at || conversation.Conversation_created_at || new Date();
                 
-                console.log(`Processed data for conversation ${conversationId}:`, {
-                    conversationId,
-                    visitor,
-                    deviceId: deviceId.substring(0, 8),
-                    messageCount,
-                    status,
-                    lastActivity
-                });
+                // Format date
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1847,7 +1817,6 @@
         
         // Initialize conversations on page load
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM Content Loaded - Starting conversation load');
             loadBusinessConversations(1);
             
             // Set device fill widths dynamically to avoid CSS parsing issues
@@ -1862,45 +1831,37 @@
         
         // Also try loading after window load in case DOMContentLoaded is too early
         window.addEventListener('load', function() {
-            console.log('Window Loaded - Double checking conversation load');
             const tbody = document.getElementById('conversationsTableBody');
             if (tbody && tbody.innerHTML.includes('Loading conversations')) {
-                console.log('Still loading, retrying...');
                 loadBusinessConversations(1);
             }
         });
         
         // Add a global test function for debugging
         window.testConversationAPI = async function() {
-            console.log('=== Testing Conversation API ===');
             try {
                 const response = await fetch('/business/conversations?page=1&limit=10');
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
                 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.error('Error response text:', errorText);
+                    console.error('Error response:', errorText);
                     return;
                 }
                 
                 const data = await response.json();
-                console.log('API Response:', data);
                 
                 if (data.conversations && Array.isArray(data.conversations)) {
-                    console.log(`✅ Success: Found ${data.conversations.length} conversations`);
-                    data.conversations.forEach(conv => console.log(`- Conversation ${conv.id}: ${conv.status} (${conv.messageCount} messages)`));
+                    // Success - conversations loaded
                 } else {
-                    console.error('❌ Invalid response format:', data);
+                    console.error('Invalid response format:', data);
                 }
             } catch (error) {
-                console.error('❌ API Test Error:', error);
+                console.error('Test failed:', error);
             }
         };
         
         // Auto-run test after 2 seconds
         setTimeout(() => {
-            console.log('Auto-running API test...');
             window.testConversationAPI();
         }, 2000);
         

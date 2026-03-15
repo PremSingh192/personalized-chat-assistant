@@ -33,6 +33,14 @@ export const uploadKnowledge = [
         content = textContent;
       }
       
+      // Validate content
+      if (!content || content.trim().length === 0) {
+        return res.status(400).json({ 
+          error: 'No content could be extracted from the provided source',
+          details: 'Please check your file/URL and try again'
+        });
+      }
+      
       const document = knowledgeDocumentRepository.create({
         business_id: business.id,
         title: title || 'Untitled Document',
@@ -42,12 +50,31 @@ export const uploadKnowledge = [
       
       await knowledgeDocumentRepository.save(document);
       
-      await knowledgeService.processDocument(document);
+      // Process document asynchronously to avoid timeout
+      process.nextTick(async () => {
+        try {
+          await knowledgeService.processDocument(document);
+        } catch (error) {
+          console.error('Document processing failed:', error);
+        }
+      });
       
-      res.status(201).json({ document });
-    } catch (error) {
+      res.status(201).json({ 
+        success: true,
+        message: 'Document uploaded successfully',
+        document: {
+          id: document.id,
+          title: document.title,
+          source_type: document.source_type,
+          created_at: document.created_at
+        }
+      });
+    } catch (error: any) {
       console.error('Upload error:', error);
-      res.status(500).json({ error: 'Error uploading knowledge document' });
+      res.status(500).json({ 
+        error: 'Error uploading knowledge document',
+        details: error?.message || 'Unknown error occurred'
+      });
     }
   }
 ];
@@ -97,10 +124,29 @@ export const getKnowledgeDocuments = async (req: Request, res: Response) => {
       order: { created_at: 'DESC' }
     });
     
-    return res.json({ success: true, data: documents });
-  } catch (error) {
+    // Transform documents to include embedding count and safe data
+    const transformedDocuments = documents.map(doc => ({
+      id: doc.id,
+      title: doc.title,
+      source_type: doc.source_type,
+      created_at: doc.created_at,
+      updated_at: doc.updated_at,
+      embedding_count: doc.embeddings?.length || 0,
+      content_length: doc.content?.length || 0,
+      is_processed: doc.embeddings && doc.embeddings.length > 0
+    }));
+    
+    return res.json({ 
+      success: true, 
+      data: transformedDocuments,
+      total: transformedDocuments.length
+    });
+  } catch (error: any) {
     console.error('Error fetching knowledge documents:', error);
-    res.status(500).json({ error: 'Error fetching knowledge documents' });
+    res.status(500).json({ 
+      error: 'Error fetching knowledge documents',
+      details: error?.message || 'Database query failed'
+    });
   }
 };
 

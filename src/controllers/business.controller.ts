@@ -413,12 +413,18 @@ export const getBusinessConversations = async (req: Request, res: Response) => {
     }
     
     // Get paginated conversations with visitor data
-    const conversations = await conversationRepository
+    let queryBuilder = conversationRepository
       .createQueryBuilder('conversation')
       .leftJoinAndSelect('conversation.visitor', 'visitor')
       .leftJoinAndSelect('conversation.messages', 'messages')
-      .where('conversation.business_id = :businessId', { businessId })
-      .andWhere(status && ['active', 'completed', 'inactive'].includes(status) ? 'conversation.status = :status' : '1=1', { status })
+      .where('conversation.business_id = :businessId', { businessId });
+    
+    // Add status filter if provided
+    if (status && ['active', 'completed', 'inactive'].includes(status)) {
+      queryBuilder = queryBuilder.andWhere('conversation.status = :status', { status });
+    }
+    
+    const conversations = await queryBuilder
       .orderBy('conversation.created_at', 'DESC')
       .take(limit)
       .skip(offset)
@@ -431,12 +437,17 @@ export const getBusinessConversations = async (req: Request, res: Response) => {
     
     // Get message statistics
     const conversationIds = conversations.map(c => c.id);
-    const messageStats = await messageRepository
-      .createQueryBuilder('message')
-      .select('conversation_id, COUNT(*) as message_count, COUNT(CASE WHEN sender_type = \'visitor\' THEN 1 END) as visitor_messages, COUNT(CASE WHEN sender_type = \'bot\' THEN 1 END) as bot_messages, MAX(created_at) as last_message_at')
-      .where('conversation_id IN (:...conversationIds)', { conversationIds })
-      .groupBy('conversation_id')
-      .getRawMany();
+    let messageStats = [];
+    
+    // Only fetch message stats if there are conversations
+    if (conversationIds.length > 0) {
+      messageStats = await messageRepository
+        .createQueryBuilder('message')
+        .select('conversation_id, COUNT(*) as message_count, COUNT(CASE WHEN sender_type = \'visitor\' THEN 1 END) as visitor_messages, COUNT(CASE WHEN sender_type = \'bot\' THEN 1 END) as bot_messages, MAX(created_at) as last_message_at')
+        .where('conversation_id IN (:...conversationIds)', { conversationIds })
+        .groupBy('conversation_id')
+        .getRawMany();
+    }
     
     // Merge message stats with conversations
     const conversationsWithStats = conversations.map(conversation => {
@@ -467,8 +478,12 @@ export const getBusinessConversations = async (req: Request, res: Response) => {
       pagination,
       filters: { status }
     });
-  } catch (error) {
-    res.status(500).json({ error: 'Error fetching business conversations' });
+  } catch (error: any) {
+    console.error('Error fetching business conversations:', error);
+    res.status(500).json({ 
+      error: 'Error fetching business conversations',
+      details: error?.message || 'Database query failed'
+    });
   }
 };
 

@@ -264,28 +264,23 @@
 
     <script>
         const showModal = () => {
-            console.log('showModal called');
             const modal = document.getElementById('businessModal');
             if (modal) {
                 modal.style.display = 'block';
-                console.log('Modal should be visible now');
             } else {
                 console.error('Modal not found!');
             }
         };
 
         const hideModal = () => {
-            console.log('hideModal called');
             const modal = document.getElementById('businessModal');
             if (modal) {
                 modal.style.display = 'none';
-                console.log('Modal hidden');
             }
         };
 
         // Event listeners instead of inline handlers
         document.getElementById('addBusinessBtn').addEventListener('click', () => {
-            console.log('Add Business button clicked');
             showModal();
         });
         document.getElementById('cancelBtn').addEventListener('click', hideModal);
