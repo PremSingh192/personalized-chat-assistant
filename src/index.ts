@@ -20,10 +20,12 @@ import knowledgeRoutes from './routes/knowledge.routes';
 import businessKnowledgeRoutes from './routes/business-knowledge.routes';
 import chatHistoryRoutes from './routes/chatHistory.routes';
 import systemConfigRoutes from './routes/systemConfig.routes';
+import cronRoutes from './routes/cron.routes';
 
 import { chatSocket } from './socket/chat.socket';
 import { ensureAdminExists } from './scripts/ensureAdmin';
 import { SystemConfigService } from './services/systemConfig.service';
+import { cronService } from './services/cron.service';
 
 const app = express();
 const server = createServer(app);
@@ -99,6 +101,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/chat', chatHistoryRoutes);
 app.use('/api/knowledge', knowledgeRoutes);
 app.use('/api/system-config', systemConfigRoutes);
+app.use('/api/cron', cronRoutes);
 
 // Widget JavaScript file route
 app.get('/widget.js', (req, res) => {
@@ -167,10 +170,25 @@ const startServer = async () => {
     server.listen(config.server.port, () => {
       // Server running successfully
     });
+
+    // Start cron service for widget health checks
+    cronService.start();
+    
   } catch (error) {
     console.error('Error starting server:', error);
     process.exit(1);
   }
 };
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  cronService.stop();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  cronService.stop();
+  process.exit(0);
+});
 
 startServer();

@@ -18,9 +18,9 @@ export const AppDataSource = new DataSource({
   database: config.database.database,
   synchronize: config.database.synchronize,
   logging: false, // Disabled for production
-  ssl: {
-    rejectUnauthorized: false
-  },
+  // ssl: {
+  //   rejectUnauthorized: false
+  // },
   entities: [Admin, Business, Visitor, Conversation, Message, KnowledgeDocument, Embedding, SystemConfig],
   migrations: ['src/migrations/*.ts'],
   subscribers: ['src/subscribers/*.ts'],
