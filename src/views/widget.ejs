@@ -41,11 +41,11 @@
         }
         
         .message.visitor {
-            justify-content: flex-start;
+            justify-content: flex-end;
         }
         
         .message.bot {
-            justify-content: flex-end;
+            justify-content: flex-start;
         }
         
         .message-content {
@@ -56,15 +56,15 @@
         }
         
         .message.visitor .message-content {
-            background: #e9ecef;
-            color: #333;
-            border-bottom-left-radius: 4px;
-        }
-        
-        .message.bot .message-content {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
             border-bottom-right-radius: 4px;
+        }
+        
+        .message.bot .message-content {
+            background: #e9ecef;
+            color: #333;
+            border-bottom-left-radius: 4px;
         }
         
         .message-time {
@@ -137,8 +137,8 @@
             font-size: 0.9rem;
             align-items: center;
             gap: 8px;
-            margin-left: auto; /* Align to right side */
-            margin-right: 0;
+            margin-left: 0;
+            margin-right: auto;
             font-style: italic;
         }
         
@@ -213,6 +213,322 @@
         @keyframes blink {
             0%, 50% { opacity: 1; }
             51%, 100% { opacity: 0; }
+        }
+        
+        /* Enhanced Mobile Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+            
+            .chat-header {
+                padding: 0.75rem 1rem;
+            }
+            
+            .chat-header h2 {
+                font-size: 1.1rem;
+            }
+            
+            .chat-header p {
+                font-size: 0.8rem;
+            }
+            
+            .chat-messages {
+                padding: 0.75rem;
+            }
+            
+            .message {
+                margin-bottom: 0.75rem;
+            }
+            
+            .message-content {
+                max-width: 85%;
+                padding: 0.6rem 0.8rem;
+                font-size: 0.9rem;
+            }
+            
+            .message-time {
+                font-size: 0.65rem;
+                margin-top: 0.2rem;
+            }
+            
+            .chat-input-container {
+                padding: 0.75rem;
+                gap: 0.4rem;
+            }
+            
+            .chat-input {
+                padding: 0.6rem;
+                font-size: 16px;
+                border-radius: 20px;
+            }
+            
+            .send-button {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .typing-indicator,
+            .thinking-indicator {
+                padding: 0.4rem 0.8rem;
+                margin-bottom: 0.75rem;
+                font-size: 0.8rem;
+            }
+            
+            .typing-dot,
+            .thinking-dot {
+                width: 6px;
+                height: 6px;
+            }
+            
+            .welcome-message {
+                padding: 1.5rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            body {
+                font-size: 13px;
+            }
+            
+            .chat-header {
+                padding: 0.6rem 0.8rem;
+            }
+            
+            .chat-header h2 {
+                font-size: 1rem;
+            }
+            
+            .chat-header p {
+                font-size: 0.75rem;
+            }
+            
+            .chat-messages {
+                padding: 0.6rem;
+            }
+            
+            .message {
+                margin-bottom: 0.6rem;
+            }
+            
+            .message-content {
+                max-width: 90%;
+                padding: 0.5rem 0.7rem;
+                font-size: 0.85rem;
+                border-radius: 15px;
+            }
+            
+            .message.visitor .message-content {
+                border-bottom-right-radius: 3px;
+            }
+            
+            .message.bot .message-content {
+                border-bottom-left-radius: 3px;
+            }
+            
+            .message-time {
+                font-size: 0.6rem;
+            }
+            
+            .chat-input-container {
+                padding: 0.6rem;
+                gap: 0.3rem;
+            }
+            
+            .chat-input {
+                padding: 0.5rem;
+                font-size: 16px;
+                border-radius: 18px;
+            }
+            
+            .send-button {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .send-button svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .typing-indicator,
+            .thinking-indicator {
+                padding: 0.3rem 0.6rem;
+                margin-bottom: 0.6rem;
+                font-size: 0.75rem;
+            }
+            
+            .typing-dot,
+            .thinking-dot {
+                width: 5px;
+                height: 5px;
+            }
+            
+            .welcome-message {
+                padding: 1rem;
+                font-size: 0.85rem;
+            }
+            
+            .error-message {
+                padding: 0.8rem;
+                font-size: 0.8rem;
+                margin: 0.8rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                font-size: 12px;
+            }
+            
+            .chat-header {
+                padding: 0.5rem 0.6rem;
+            }
+            
+            .chat-header h2 {
+                font-size: 0.95rem;
+            }
+            
+            .chat-header p {
+                font-size: 0.7rem;
+            }
+            
+            .chat-messages {
+                padding: 0.5rem;
+            }
+            
+            .message-content {
+                max-width: 95%;
+                padding: 0.4rem 0.6rem;
+                font-size: 0.8rem;
+                border-radius: 12px;
+            }
+            
+            .message-time {
+                font-size: 0.55rem;
+            }
+            
+            .chat-input-container {
+                padding: 0.5rem;
+            }
+            
+            .chat-input {
+                padding: 0.45rem;
+                font-size: 16px;
+                border-radius: 15px;
+            }
+            
+            .send-button {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .send-button svg {
+                width: 18px;
+                height: 18px;
+            }
+            
+            .welcome-message {
+                padding: 0.8rem;
+                font-size: 0.8rem;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .chat-header h2 {
+                font-size: 0.9rem;
+            }
+            
+            .chat-header p {
+                font-size: 0.65rem;
+            }
+            
+            .message-content {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.5rem;
+            }
+            
+            .send-button {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .send-button svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+        
+        /* Landscape mobile optimizations */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .chat-header {
+                padding: 0.4rem 0.6rem;
+            }
+            
+            .chat-header h2 {
+                font-size: 0.9rem;
+            }
+            
+            .chat-header p {
+                display: none;
+            }
+            
+            .chat-messages {
+                padding: 0.4rem;
+            }
+            
+            .message {
+                margin-bottom: 0.4rem;
+            }
+            
+            .message-content {
+                padding: 0.3rem 0.5rem;
+                font-size: 0.8rem;
+            }
+            
+            .chat-input-container {
+                padding: 0.4rem;
+            }
+            
+            .chat-input {
+                padding: 0.4rem;
+                font-size: 14px;
+            }
+            
+            .send-button {
+                width: 30px;
+                height: 30px;
+            }
+            
+            .typing-indicator,
+            .thinking-indicator {
+                padding: 0.2rem 0.4rem;
+                margin-bottom: 0.4rem;
+                font-size: 0.7rem;
+            }
+        }
+        
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .message-content {
+                box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            }
+            
+            .chat-input:focus {
+                box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.2);
+            }
+        }
+        
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .send-button:active {
+                transform: scale(0.95);
+            }
+            
+            .message-content {
+                -webkit-tap-highlight-color: transparent;
+            }
         }
     </style>
 </head>
@@ -460,8 +776,11 @@
                 return;
             }
             
+            // Map sender types to CSS classes
+            const senderClass = sender === 'user' ? 'visitor' : sender;
+            
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
+            messageDiv.className = `message ${senderClass}`;
             messageDiv.innerHTML = `
                 <div class="message-content">${message}</div>
                 <div class="message-time">${timestamp.toLocaleTimeString()}</div>
@@ -477,8 +796,11 @@
                 return null;
             }
             
+            // Map sender types to CSS classes
+            const senderClass = sender === 'user' ? 'visitor' : sender;
+            
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender} streaming`;
+            messageDiv.className = `message ${senderClass} streaming`;
             messageDiv.innerHTML = `
                 <div class="message-content">
                     <span class="streaming-cursor">|</span>

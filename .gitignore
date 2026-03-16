@@ -16,7 +16,6 @@ build/
 .env.production.local
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
@@ -98,7 +97,6 @@ jspm_packages/
 .tern-port
 
 # Stores VSCode versions used for testing VSCode extensions
-.vscode-test
 
 # Temporary folders
 tmp/
@@ -123,8 +121,6 @@ dump.rdb
 .stylelintcache
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
 .idea
 *.suo
 *.ntvs*
@@ -154,3 +150,6 @@ junit.xml
 # Chat widget specific
 widget-dist/
 widget-build/
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore

@@ -1,19 +1,491 @@
-<script src="https://bottotalk.onrender.com/widget.js"></script>
-<script>
-ChatWidget.init({
-  widgetUrl: 'https://bottotalk.onrender.com/widget',
-  apiKey: '835ffed9-8614-467b-98b3-406ef55a3d65',
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Widget Demo - Responsive Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .demo-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+        
+        .demo-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .demo-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        .demo-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .demo-section {
+            background: rgba(255,255,255,0.95);
+            padding: 2rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .demo-section h2 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .demo-section p {
+            color: #666;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .feature-list {
+            list-style: none;
+        }
+        
+        .feature-list li {
+            padding: 0.5rem 0;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-list li::before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        
+        .config-section {
+            background: rgba(255,255,255,0.95);
+            padding: 2rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .config-section h2 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .config-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .config-item h3 {
+            color: #007bff;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .config-item p {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        .responsive-info {
+            background: rgba(255,255,255,0.95);
+            padding: 2rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .responsive-info h2 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .device-sizes {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .device-size {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .device-size .size {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .device-size .label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+        
+        /* Enhanced Responsive Design */
+        @media (max-width: 992px) {
+            .demo-container {
+                padding: 1.5rem;
+            }
+            
+            .demo-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .demo-header p {
+                font-size: 1.1rem;
+            }
+            
+            .demo-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .config-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .demo-container {
+                padding: 1rem;
+            }
+            
+            .demo-header {
+                margin-bottom: 2rem;
+            }
+            
+            .demo-header h1 {
+                font-size: 2rem;
+            }
+            
+            .demo-header p {
+                font-size: 1rem;
+            }
+            
+            .demo-section {
+                padding: 1.5rem;
+            }
+            
+            .demo-section h2 {
+                font-size: 1.3rem;
+            }
+            
+            .config-section {
+                padding: 1.5rem;
+            }
+            
+            .config-section h2 {
+                font-size: 1.3rem;
+            }
+            
+            .config-item {
+                padding: 0.8rem;
+            }
+            
+            .responsive-info {
+                padding: 1.5rem;
+            }
+            
+            .responsive-info h2 {
+                font-size: 1.3rem;
+            }
+            
+            .device-sizes {
+                gap: 1rem;
+            }
+            
+            .device-size {
+                min-width: 100px;
+                padding: 0.8rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .demo-container {
+                padding: 0.75rem;
+            }
+            
+            .demo-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .demo-header p {
+                font-size: 0.9rem;
+            }
+            
+            .demo-section {
+                padding: 1rem;
+            }
+            
+            .demo-section h2 {
+                font-size: 1.2rem;
+            }
+            
+            .config-section {
+                padding: 1rem;
+            }
+            
+            .config-section h2 {
+                font-size: 1.2rem;
+            }
+            
+            .config-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            
+            .responsive-info {
+                padding: 1rem;
+            }
+            
+            .responsive-info h2 {
+                font-size: 1.2rem;
+            }
+            
+            .device-sizes {
+                gap: 0.5rem;
+            }
+            
+            .device-size {
+                min-width: 80px;
+                padding: 0.6rem;
+            }
+            
+            .device-size .size {
+                font-size: 1rem;
+            }
+            
+            .device-size .label {
+                font-size: 0.7rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .demo-container {
+                padding: 0.5rem;
+            }
+            
+            .demo-header h1 {
+                font-size: 1.6rem;
+            }
+            
+            .demo-header p {
+                font-size: 0.85rem;
+            }
+            
+            .demo-section {
+                padding: 0.8rem;
+            }
+            
+            .demo-section h2 {
+                font-size: 1.1rem;
+            }
+            
+            .config-section {
+                padding: 0.8rem;
+            }
+            
+            .config-section h2 {
+                font-size: 1.1rem;
+            }
+            
+            .config-item h3 {
+                font-size: 1rem;
+            }
+            
+            .config-item p {
+                font-size: 0.8rem;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .demo-header h1 {
+                font-size: 1.4rem;
+            }
+            
+            .demo-header p {
+                font-size: 0.8rem;
+            }
+            
+            .demo-section {
+                padding: 0.6rem;
+            }
+            
+            .demo-section h2 {
+                font-size: 1rem;
+            }
+        }
+        
+        /* Landscape mobile optimizations */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .demo-header {
+                margin-bottom: 1.5rem;
+            }
+            
+            .demo-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .demo-header p {
+                font-size: 0.9rem;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>Chat Widget Demo</h1>
+            <p>Test the responsive chat widget across all screen sizes</p>
+        </div>
+        
+        <div class="demo-content">
+            <div class="demo-section">
+                <h2>🚀 Features</h2>
+                <p>Experience a fully responsive chat widget that works seamlessly across all devices and screen sizes.</p>
+                <ul class="feature-list">
+                    <li>Mobile-first responsive design</li>
+                    <li>Touch-optimized interactions</li>
+                    <li>Landscape orientation support</li>
+                    <li>High DPI display optimization</li>
+                    <li>Accessibility features</li>
+                    <li>Smooth animations and transitions</li>
+                </ul>
+            </div>
+            
+            <div class="demo-section">
+                <h2>📱 Responsive Breakpoints</h2>
+                <p>The widget automatically adapts to different screen sizes with optimized layouts and interactions.</p>
+                <ul class="feature-list">
+                    <li>Desktop: 1200px and above</li>
+                    <li>Tablet: 768px - 1024px</li>
+                    <li>Mobile: 480px - 767px</li>
+                    <li>Small Mobile: 360px - 479px</li>
+                    <li>Landscape optimizations</li>
+                    <li>High DPI display support</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="config-section">
+            <h2>⚙️ Widget Configuration</h2>
+            <div class="config-grid">
+                <div class="config-item">
+                    <h3>Primary Color</h3>
+                    <p>#2563eb - Modern blue theme</p>
+                </div>
+                <div class="config-item">
+                    <h3>Secondary Color</h3>
+                    <p>#1e40af - Dark blue accent</p>
+                </div>
+                <div class="config-item">
+                    <h3>Size</h3>
+                    <p>Medium - Balanced for all screens</p>
+                </div>
+                <div class="config-item">
+                    <h3>Position</h3>
+                    <p>Bottom-right corner placement</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="responsive-info">
+            <h2>📏 Tested Screen Sizes</h2>
+            <div class="device-sizes">
+                <div class="device-size">
+                    <div class="size">360px</div>
+                    <div class="label">Small Mobile</div>
+                </div>
+                <div class="device-size">
+                    <div class="size">480px</div>
+                    <div class="label">Mobile</div>
+                </div>
+                <div class="device-size">
+                    <div class="size">768px</div>
+                    <div class="label">Tablet</div>
+                </div>
+                <div class="device-size">
+                    <div class="size">1024px</div>
+                    <div class="label">Large Tablet</div>
+                </div>
+                <div class="device-size">
+                    <div class="size">1200px</div>
+                    <div class="label">Desktop</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  primaryColor: '#2563eb',
-  secondaryColor: '#1e40af',
+    <!-- Chat Widget Integration -->
+    <script src="https://bottotalk.onrender.com/widget.js"></script>
+    <script>
+        ChatWidget.init({
+            widgetUrl: 'https://bottotalk.onrender.com/widget',
+            apiKey: '835ffed9-8614-467b-98b3-406ef55a3d65',
 
-  textColor: '#e5e7eb',
-  bgColor: '#111827',
+            primaryColor: '#2563eb',
+            secondaryColor: '#1e40af',
 
-  headerTitle: 'CT Assistant',
-  headerSubtitle: 'How can I help you today?',
+            textColor: '#e5e7eb',
+            bgColor: '#111827',
 
-  position: 'bottom-right',
-  size: 'medium'
-});
-</script>
+            headerTitle: 'CT Assistant',
+            headerSubtitle: 'How can I help you today?',
+
+            position: 'bottom-right',
+            size: 'medium'
+        });
+    </script>
+</body>
+</html>

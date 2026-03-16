@@ -177,6 +177,100 @@
                     .chat-button {
                         bottom: 20px;
                         right: 20px;
+                        width: 50px;
+                        height: 50px;
+                    }
+                    
+                    .chat-button svg {
+                        width: 20px;
+                        height: 20px;
+                    }
+                }
+                
+                @media (max-width: 360px) {
+                    .chat-button {
+                        width: 45px;
+                        height: 45px;
+                        bottom: 15px;
+                        right: 15px;
+                    }
+                    
+                    .chat-button svg {
+                        width: 18px;
+                        height: 18px;
+                    }
+                }
+                
+                /* Tablet optimizations */
+                @media (min-width: 768px) and (max-width: 1024px) {
+                    .chat-window {
+                        width: ${Math.min(size.width + 40, 420)}px;
+                        height: ${Math.min(size.height + 60, 660)}px;
+                    }
+                    
+                    .chat-button {
+                        width: 55px;
+                        height: 55px;
+                    }
+                }
+                
+                /* Landscape mobile optimizations */
+                @media (max-height: 600px) and (orientation: landscape) {
+                    .chat-window {
+                        height: 85vh;
+                        bottom: 10px;
+                    }
+                    
+                    .chat-button {
+                        bottom: 10px;
+                        width: 40px;
+                        height: 40px;
+                    }
+                    
+                    .chat-button svg {
+                        width: 16px;
+                        height: 16px;
+                    }
+                }
+                
+                /* High DPI displays */
+                @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+                    .chat-button {
+                        box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+                    }
+                    
+                    .chat-button:hover {
+                        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+                    }
+                    
+                    .chat-window {
+                        box-shadow: 0 12px 36px rgba(0,0,0,0.15);
+                    }
+                }
+                
+                /* Touch device optimizations */
+                @media (hover: none) and (pointer: coarse) {
+                    .chat-button {
+                        transition: transform 0.1s;
+                    }
+                    
+                    .chat-button:active {
+                        transform: scale(0.95);
+                    }
+                    
+                    .close-button {
+                        padding: 8px;
+                    }
+                }
+                
+                /* Reduce motion for accessibility */
+                @media (prefers-reduced-motion: reduce) {
+                    .chat-button {
+                        transition: none;
+                    }
+                    
+                    .chat-button:hover {
+                        transform: none;
                     }
                 }
             `;
